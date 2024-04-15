@@ -18,6 +18,9 @@ export interface ShopProduct {
   warningQty?: number;
   imageUrl?: string;
   imageOssId?: string;
+  saleCount?: number;
+  keyword?: string;
+  sortBySales?: boolean;
   supplierId?: string | number;
   supplierIds?: Array<string | number>;
   supplierNames?: string;
@@ -28,6 +31,7 @@ export interface ShopProduct {
 export interface ShopStock {
   stockId?: string | number;
   productId?: string | number;
+  productName?: string;
   quantity?: number;
   warningQty?: number;
 }
@@ -59,6 +63,7 @@ export interface ShopCreditRecord {
   creditId?: string | number;
   orderId?: string | number;
   customerId?: string | number;
+  customerName?: string;
   creditAmount?: number;
   paidAmount?: number;
   unpaidAmount?: number;

@@ -9,7 +9,12 @@
     </div>
 
     <el-table v-loading="loading" border :data="stocks" row-key="stockId">
-      <el-table-column label="商品ID" prop="productId" width="120" />
+      <el-table-column label="商品" min-width="180">
+        <template #default="{ row }">
+          <span class="name-cell">{{ row.productName || '未命名商品' }}</span>
+          <small>ID {{ row.productId }}</small>
+        </template>
+      </el-table-column>
       <el-table-column label="当前库存" prop="quantity" min-width="160">
         <template #default="{ row }">
           <strong :class="{ danger: row.quantity <= row.warningQty }">{{ row.quantity }}</strong>
@@ -27,7 +32,12 @@
 
     <h3 class="section-title">库存流水</h3>
     <el-table border :data="logs">
-      <el-table-column label="商品ID" prop="productId" width="120" />
+      <el-table-column label="商品" min-width="180">
+        <template #default="{ row }">
+          <span class="name-cell">{{ row.productName || '未命名商品' }}</span>
+          <small>ID {{ row.productId }}</small>
+        </template>
+      </el-table-column>
       <el-table-column label="类型" prop="changeType" width="110" />
       <el-table-column label="变化数量" prop="changeQty" width="120" />
       <el-table-column label="变动前" prop="beforeQty" width="120" />
@@ -125,5 +135,18 @@ onMounted(() => {
 .danger {
   color: var(--dzg-shop-clay);
   font-size: 18px;
+}
+
+.name-cell {
+  display: block;
+  color: var(--dzg-shop-text);
+  font-weight: 800;
+}
+
+small {
+  display: block;
+  margin-top: 4px;
+  color: var(--dzg-shop-muted);
+  font-size: 12px;
 }
 </style>

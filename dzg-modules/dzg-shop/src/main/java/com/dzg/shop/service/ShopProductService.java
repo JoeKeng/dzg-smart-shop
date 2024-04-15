@@ -1,6 +1,7 @@
 package com.dzg.shop.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dzg.common.core.constant.TenantConstants;
@@ -9,10 +10,12 @@ import com.dzg.common.core.utils.StringUtils;
 import com.dzg.common.mybatis.core.page.PageQuery;
 import com.dzg.common.mybatis.core.page.TableDataInfo;
 import com.dzg.shop.domain.ShopCategory;
+import com.dzg.shop.domain.ShopOrderItem;
 import com.dzg.shop.domain.ShopProduct;
 import com.dzg.shop.domain.ShopProductSupplier;
 import com.dzg.shop.domain.ShopSupplier;
 import com.dzg.shop.mapper.ShopCategoryMapper;
+import com.dzg.shop.mapper.ShopOrderItemMapper;
 import com.dzg.shop.mapper.ShopProductMapper;
 import com.dzg.shop.mapper.ShopProductSupplierMapper;
 import com.dzg.shop.mapper.ShopSupplierMapper;
@@ -38,6 +41,7 @@ public class ShopProductService {
     private final ShopProductMapper productMapper;
     private final ShopProductSupplierMapper productSupplierMapper;
     private final ShopSupplierMapper supplierMapper;
+    private final ShopOrderItemMapper orderItemMapper;
     private final ShopStockService stockService;
 
     public TableDataInfo<ShopCategory> categoryPage(ShopCategory query, PageQuery pageQuery) {
@@ -135,6 +139,10 @@ public class ShopProductService {
             query = new ShopProduct();
         }
         LambdaQueryWrapper<ShopProduct> lqw = Wrappers.lambdaQuery();
+        lqw.and(StringUtils.isNotBlank(query.getKeyword()), wrapper -> wrapper
+            .like(ShopProduct::getProductName, query.getKeyword())
+            .or()
+            .like(ShopProduct::getBarcode, query.getKeyword()));
         lqw.like(StringUtils.isNotBlank(query.getProductName()), ShopProduct::getProductName, query.getProductName());
         lqw.eq(query.getCategoryId() != null, ShopProduct::getCategoryId, query.getCategoryId());
         lqw.like(StringUtils.isNotBlank(query.getBarcode()), ShopProduct::getBarcode, query.getBarcode());
@@ -159,7 +167,11 @@ public class ShopProductService {
                 lqw.in(ShopProduct::getProductId, productIds);
             }
         }
-        lqw.orderByDesc(ShopProduct::getCreateTime);
+        if (Boolean.TRUE.equals(query.getSortBySales())) {
+            lqw.last("order by (select coalesce(sum(oi.quantity), 0) from dzg_order_item oi where oi.product_id = dzg_product.product_id and (oi.del_flag = '0' or oi.del_flag is null)) desc, create_time desc");
+        } else {
+            lqw.orderByDesc(ShopProduct::getCreateTime);
+        }
         return lqw;
     }
 
@@ -232,6 +244,19 @@ public class ShopProductService {
             : supplierMapper.selectByIds(supplierIds).stream().collect(Collectors.toMap(ShopSupplier::getSupplierId, Function.identity()));
         Map<Long, List<ShopProductSupplier>> relationMap = relations.stream()
             .collect(Collectors.groupingBy(ShopProductSupplier::getProductId));
+        Map<Long, Integer> saleCountMap = orderItemMapper.selectMaps(new QueryWrapper<ShopOrderItem>()
+                .select("product_id", "coalesce(sum(quantity), 0) as sale_count")
+                .in("product_id", productIds)
+                .and(wrapper -> wrapper.eq("del_flag", ShopConstants.NORMAL).or().isNull("del_flag"))
+                .groupBy("product_id"))
+            .stream()
+            .collect(Collectors.toMap(
+                row -> Long.valueOf(String.valueOf(row.get("product_id"))),
+                row -> {
+                    Object value = row.getOrDefault("sale_count", row.get("SALE_COUNT"));
+                    return value instanceof Number number ? number.intValue() : Integer.parseInt(String.valueOf(value));
+                }
+            ));
 
         for (ShopProduct product : products) {
             ShopCategory category = categoryMap.get(product.getCategoryId());
@@ -253,6 +278,7 @@ public class ShopProductService {
             }
             product.setSupplierIds(ids);
             product.setSupplierNames(String.join("、", names));
+            product.setSaleCount(saleCountMap.getOrDefault(product.getProductId(), 0));
         }
     }
 

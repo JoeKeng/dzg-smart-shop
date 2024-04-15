@@ -20,10 +20,12 @@
           <strong :class="{ danger: Number(row.currentDebt || 0) > 0 }">￥{{ money(row.currentDebt) }}</strong>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="150" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" icon="Edit" @click="openCustomer(row)">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="removeCustomer(row)">删除</el-button>
+          <div class="table-actions">
+            <el-button link type="primary" @click="openCustomer(row)">修改</el-button>
+            <el-button link type="danger" @click="removeCustomer(row)">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -117,5 +119,18 @@ onMounted(loadCustomers);
 <style scoped>
 .danger {
   color: var(--dzg-shop-clay);
+}
+
+.table-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.table-actions .el-button {
+  margin: 0;
 }
 </style>

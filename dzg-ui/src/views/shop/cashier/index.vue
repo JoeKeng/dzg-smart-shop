@@ -2,19 +2,30 @@
   <div class="cashier-page">
     <div class="cashier-header">
       <h2>收银台</h2>
-      <el-input v-model="keyword" class="scan-input" clearable autofocus placeholder="扫码或输入商品名称" @keyup.enter="searchProduct" />
+      <el-input v-model="keyword" class="scan-input" clearable autofocus placeholder="扫码或输入商品名称/条码" @keyup.enter="searchProduct" />
       <el-button class="action-button" type="primary" icon="Search" @click="searchProduct">找商品</el-button>
     </div>
 
     <div class="cashier-layout">
       <section class="product-panel">
-        <h3>常用商品</h3>
-        <div class="product-grid">
+        <div class="product-panel__head">
+          <h3>常用商品</h3>
+          <el-switch v-model="productQuery.sortBySales" active-text="销量优先" @change="reloadProducts" />
+        </div>
+        <div v-loading="productLoading" class="product-grid">
           <button v-for="item in products" :key="item.productId" type="button" class="product-button" @click="addToCart(item)">
-            <span>{{ item.productName }}</span>
-            <strong>￥{{ money(item.salePrice) }}</strong>
+            <span class="product-thumb">
+              <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.productName" />
+              <span v-else>无图</span>
+            </span>
+            <span class="product-info">
+              <span>{{ item.productName }}</span>
+              <small>{{ item.barcode || '无条码' }} · 已售 {{ item.saleCount || 0 }}</small>
+              <strong>￥{{ money(item.salePrice) }}</strong>
+            </span>
           </button>
         </div>
+        <pagination v-show="productTotal > 0" v-model:page="productQuery.pageNum" v-model:limit="productQuery.pageSize" :total="productTotal" @pagination="loadProducts" />
       </section>
 
       <section class="cart-panel">
@@ -64,9 +75,10 @@
 </template>
 
 <script setup name="ShopCashier" lang="ts">
-import { createCashierOrder, customerOptions, productOptions } from '@/api/shop';
+import { createCashierOrder, customerOptions, listProduct } from '@/api/shop';
 import { optionList } from '@/api/shop/response';
 import { ShopCustomer, ShopProduct } from '@/api/shop/types';
+import { listByIds } from '@/api/system/oss';
 
 interface CartItem extends ShopProduct {
   quantity: number;
@@ -74,11 +86,14 @@ interface CartItem extends ShopProduct {
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const keyword = ref('');
+const productLoading = ref(false);
 const products = ref<ShopProduct[]>([]);
+const productTotal = ref(0);
 const customers = ref<ShopCustomer[]>([]);
 const cart = ref<CartItem[]>([]);
 const payType = ref('cash');
 const customerId = ref<string | number>();
+const productQuery = reactive({ pageNum: 1, pageSize: 12, keyword: '', sortBySales: true });
 const payOptions = [
   { label: '现金', value: 'cash' },
   { label: '微信', value: 'wechat' },
@@ -111,8 +126,32 @@ const payQr = computed(() => {
 const money = (value?: number) => Number(value || 0).toFixed(2);
 
 const loadProducts = async () => {
-  const res = await productOptions(keyword.value ? { productName: keyword.value } : {});
-  products.value = optionList<ShopProduct>(res);
+  productLoading.value = true;
+  try {
+    productQuery.keyword = keyword.value.trim();
+    const res = await listProduct(productQuery);
+    products.value = res.rows || [];
+    productTotal.value = res.total || 0;
+    await hydrateProductImages();
+  } finally {
+    productLoading.value = false;
+  }
+};
+
+const hydrateProductImages = async () => {
+  const ossIds = products.value.map((item) => item.imageOssId).filter(Boolean) as Array<string | number>;
+  if (!ossIds.length) return;
+  try {
+    const res = await listByIds(ossIds.join(','));
+    const imageMap = new Map((res.data || []).map((item) => [String(item.ossId), item.url]));
+    products.value.forEach((product) => {
+      if (product.imageOssId) {
+        product.imageUrl = imageMap.get(String(product.imageOssId)) || product.imageUrl;
+      }
+    });
+  } catch {
+    // 图片补全失败时保留商品列表，避免影响收银操作。
+  }
 };
 
 const loadCustomers = async () => {
@@ -121,12 +160,19 @@ const loadCustomers = async () => {
 };
 
 const searchProduct = async () => {
+  productQuery.pageNum = 1;
   await loadProducts();
-  if (products.value.length === 1) {
+  if (keyword.value.trim() && products.value.length === 1) {
     addToCart(products.value[0]);
     keyword.value = '';
+    productQuery.pageNum = 1;
     await loadProducts();
   }
+};
+
+const reloadProducts = () => {
+  productQuery.pageNum = 1;
+  loadProducts();
 };
 
 const addToCart = (product: ShopProduct) => {
@@ -178,22 +224,32 @@ onMounted(() => {
 .cart-panel {
   padding: 14px;
 }
+.product-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.product-panel__head h3 {
+  margin: 0;
+}
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
+  min-height: 220px;
 }
 .product-button {
-  min-height: 76px;
+  min-height: 94px;
   border: 1px solid var(--dzg-shop-border);
   border-radius: 8px;
   background: color-mix(in srgb, var(--dzg-shop-surface) 88%, var(--dzg-shop-bg));
   color: var(--dzg-shop-text);
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
   font-size: 15px;
   text-align: left;
   cursor: pointer;
@@ -209,6 +265,47 @@ onMounted(() => {
 .product-button strong {
   color: var(--dzg-shop-primary);
   font-size: 18px;
+}
+.product-thumb {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--dzg-shop-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--dzg-shop-bg-soft) 80%, #fff);
+  color: var(--dzg-shop-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+}
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.product-info {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.product-info span,
+.product-info small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.product-info span {
+  font-weight: 800;
+}
+.product-info small {
+  color: var(--dzg-shop-muted);
+  font-size: 12px;
+}
+.cart-panel :deep(.el-input-number) {
+  width: 132px;
 }
 .pay-type,
 .customer-select,

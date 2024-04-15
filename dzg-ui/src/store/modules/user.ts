@@ -2,6 +2,7 @@ import { to } from 'await-to-js';
 import { getToken, removeToken, setToken } from '@/utils/auth';
 import { login as loginApi, logout as logoutApi, getInfo as getUserInfo } from '@/api/login';
 import { LoginData } from '@/api/types';
+import { listByIds } from '@/api/system/oss';
 import defAva from '@/assets/images/profile.jpg';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
@@ -38,7 +39,7 @@ export const useUserStore = defineStore('user', () => {
     if (res) {
       const data = res.data;
       const user = data.user;
-      const profile = user.avatar == '' || user.avatar == null ? defAva : user.avatar;
+      const profile = await resolveAvatar(user.avatar);
 
       if (data.roles && data.roles.length > 0) {
         // 验证返回的roles是否是一个非空数组
@@ -68,6 +69,22 @@ export const useUserStore = defineStore('user', () => {
 
   const setAvatar = (value: string) => {
     avatar.value = value;
+  };
+
+  const resolveAvatar = async (value?: string | number | null) => {
+    if (value == null || value === '') {
+      return defAva;
+    }
+    const avatarValue = String(value);
+    if (/^(https?:|data:|blob:|\/)/.test(avatarValue)) {
+      return avatarValue;
+    }
+    try {
+      const res = await listByIds(avatarValue);
+      return res.data?.[0]?.url || defAva;
+    } catch {
+      return defAva;
+    }
   };
 
   return {

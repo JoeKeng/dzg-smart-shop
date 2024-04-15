@@ -19,8 +19,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -36,6 +41,7 @@ public class ShopCreditService {
         lqw.eq(StringUtils.isNotBlank(query.getStatus()), ShopCreditRecord::getStatus, query.getStatus());
         lqw.orderByDesc(ShopCreditRecord::getCreateTime);
         Page<ShopCreditRecord> page = creditRecordMapper.selectPage(pageQuery.build(), lqw);
+        fillCustomerNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
@@ -93,5 +99,20 @@ public class ShopCreditService {
             customer.setCurrentDebt(debt);
             customerMapper.updateById(customer);
         }
+    }
+
+    private void fillCustomerNames(List<ShopCreditRecord> credits) {
+        List<Long> customerIds = credits.stream()
+            .map(ShopCreditRecord::getCustomerId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, ShopCustomer> customers = customerIds.isEmpty()
+            ? Collections.emptyMap()
+            : customerMapper.selectByIds(customerIds).stream().collect(Collectors.toMap(ShopCustomer::getCustomerId, Function.identity()));
+        credits.forEach(credit -> {
+            ShopCustomer customer = customers.get(credit.getCustomerId());
+            credit.setCustomerName(customer == null ? null : customer.getCustomerName());
+        });
     }
 }

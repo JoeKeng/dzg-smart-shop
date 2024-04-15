@@ -130,20 +130,27 @@ const beforeUpload = (file: UploadRawFile): any => {
       options.fileName = file.name;
     };
   }
+  return false;
 };
 /** 上传图片 */
 const uploadImg = async () => {
   cropper.value.getCropBlob(async (data: any) => {
-    const fileName = options.fileName || 'avatar.png';
-    const formData = new FormData();
-    formData.append('file', data, fileName);
-    const uploadRes = await uploadAvatarToOss(formData);
-    const res = await updateAvatarByOssId(uploadRes.data.ossId);
-    open.value = false;
-    options.img = res.data.imgUrl;
-    userStore.setAvatar(options.img);
-    proxy?.$modal.msgSuccess('修改成功');
-    visible.value = false;
+    try {
+      const fileName = options.fileName || 'avatar.png';
+      const formData = new FormData();
+      formData.append('file', data, fileName);
+      const uploadRes = await uploadAvatarToOss(formData);
+      const res = await updateAvatarByOssId(uploadRes.data.ossId);
+      open.value = false;
+      options.img = res.data?.imgUrl || options.img;
+      userStore.setAvatar(options.img);
+      await userStore.getInfo();
+      options.img = userStore.avatar;
+      proxy?.$modal.msgSuccess('修改成功');
+      visible.value = false;
+    } catch {
+      proxy?.$modal.msgError('头像上传失败，请检查 OSS 上传权限和图片格式');
+    }
   });
 };
 /** 实时预览 */
@@ -153,7 +160,7 @@ const realTime = (data: any) => {
 /** 关闭窗口 */
 const closeDialog = () => {
   options.img = userStore.avatar;
-  options.visible = false;
+  visible.value = false;
 };
 </script>
 

@@ -55,4 +55,13 @@ public class ShopProduct extends TenantEntity {
 
     @TableField(exist = false)
     private String supplierNames;
+
+    @TableField(exist = false)
+    private Integer saleCount;
+
+    @TableField(exist = false)
+    private String keyword;
+
+    @TableField(exist = false)
+    private Boolean sortBySales;
 }

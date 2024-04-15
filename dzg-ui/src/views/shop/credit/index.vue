@@ -7,7 +7,12 @@
 
     <el-table v-loading="loading" border :data="credits">
       <el-table-column label="赊账ID" prop="creditId" width="110" />
-      <el-table-column label="客户ID" prop="customerId" width="110" />
+      <el-table-column label="客户" min-width="150">
+        <template #default="{ row }">
+          <span class="name-cell">{{ row.customerName || '未知客户' }}</span>
+          <small>ID {{ row.customerId }}</small>
+        </template>
+      </el-table-column>
       <el-table-column label="赊账金额" prop="creditAmount" width="130">
         <template #default="{ row }">￥{{ money(row.creditAmount) }}</template>
       </el-table-column>
@@ -108,5 +113,18 @@ onMounted(loadCredits);
 .danger {
   color: var(--dzg-shop-clay);
   font-size: 18px;
+}
+
+.name-cell {
+  display: block;
+  color: var(--dzg-shop-text);
+  font-weight: 800;
+}
+
+small {
+  display: block;
+  margin-top: 4px;
+  color: var(--dzg-shop-muted);
+  font-size: 12px;
 }
 </style>

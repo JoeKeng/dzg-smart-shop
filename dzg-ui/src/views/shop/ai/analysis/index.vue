@@ -29,7 +29,7 @@
               <span>{{ item.horizon }}</span>
               <h3>{{ item.title }}</h3>
             </div>
-            <el-tag :type="tagType(item.level)" effect="plain">{{ levelText(item.level) }}</el-tag>
+            <el-tag v-if="isVisibleLevel(item.level)" :type="tagType(item.level)" effect="plain">{{ levelText(item.level) }}</el-tag>
           </div>
           <p>{{ item.content }}</p>
           <ul>
@@ -149,11 +149,13 @@ const tagType = (level?: string) => {
   return 'info';
 };
 
+const isVisibleLevel = (level?: string) => ['danger', 'warning', 'success'].includes(String(level || ''));
+
 const levelText = (level?: string) => {
   if (level === 'danger') return '高风险';
   if (level === 'warning') return '需关注';
   if (level === 'success') return '稳健';
-  return '观察';
+  return '';
 };
 
 onMounted(() => loadAnalysis());
@@ -282,12 +284,16 @@ onMounted(() => loadAnalysis());
 
 .question-panel {
   position: sticky;
-  top: 12px;
+  top: 64px;
   align-self: start;
+  max-height: calc(100vh - 84px);
   padding: 14px;
   border: 1px solid #d9ded4;
   border-radius: 8px;
   background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .question-head {
@@ -295,12 +301,14 @@ onMounted(() => loadAnalysis());
 }
 
 .question-messages {
-  max-height: 340px;
+  max-height: none;
+  min-height: 120px;
   overflow-y: auto;
   display: grid;
   gap: 10px;
   margin-top: 14px;
   padding-right: 4px;
+  flex: 1;
 }
 
 .question-message {
@@ -340,6 +348,25 @@ onMounted(() => loadAnalysis());
   display: grid;
   gap: 10px;
   margin-top: 14px;
+}
+
+@media (min-width: 1281px) {
+  .business-ai-page {
+    padding-right: 392px;
+  }
+
+  .analysis-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .question-panel {
+    position: fixed;
+    top: 84px;
+    right: 24px;
+    z-index: 10;
+    width: 360px;
+    max-height: calc(100vh - 108px);
+  }
 }
 
 @media (max-width: 1280px) {
