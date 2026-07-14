@@ -2,7 +2,7 @@ package com.dzg.workflow.service;
 
 import com.dzg.common.mybatis.core.page.PageQuery;
 import com.dzg.common.mybatis.core.page.TableDataInfo;
-import com.dzg.warm.flow.orm.entity.FlowInstance;
+import org.dromara.warm.flow.orm.entity.FlowInstance;
 import com.dzg.workflow.domain.bo.FlowCancelBo;
 import com.dzg.workflow.domain.bo.FlowInstanceBo;
 import com.dzg.workflow.domain.bo.FlowInvalidBo;

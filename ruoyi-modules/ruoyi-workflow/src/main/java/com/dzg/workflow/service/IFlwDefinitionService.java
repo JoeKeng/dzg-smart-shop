@@ -3,7 +3,7 @@ package com.dzg.workflow.service;
 import jakarta.servlet.http.HttpServletResponse;
 import com.dzg.common.mybatis.core.page.PageQuery;
 import com.dzg.common.mybatis.core.page.TableDataInfo;
-import com.dzg.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.warm.flow.orm.entity.FlowDefinition;
 import com.dzg.workflow.domain.vo.FlowDefinitionVo;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import com.dzg.common.core.utils.StringUtils;
-import com.dzg.warm.flow.orm.entity.FlowInstance;
+import org.dromara.warm.flow.orm.entity.FlowInstance;
 import com.dzg.workflow.api.domain.RemoteCompleteTask;
 import com.dzg.workflow.api.domain.RemoteStartProcess;
 import com.dzg.workflow.api.domain.RemoteStartProcessReturn;

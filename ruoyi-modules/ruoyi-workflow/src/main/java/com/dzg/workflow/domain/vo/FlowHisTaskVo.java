@@ -4,7 +4,7 @@ import lombok.Data;
 import com.dzg.common.core.utils.DateUtils;
 import com.dzg.common.translation.annotation.Translation;
 import com.dzg.common.translation.constant.TransConstant;
-import com.dzg.warm.flow.core.enums.CooperateType;
+import org.dromara.warm.flow.core.enums.CooperateType;
 import com.dzg.workflow.common.constant.FlowConstant;
 
 import java.io.Serial;

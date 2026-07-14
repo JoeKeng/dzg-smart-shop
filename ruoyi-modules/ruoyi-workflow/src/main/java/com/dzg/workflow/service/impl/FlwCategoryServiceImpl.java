@@ -11,9 +11,9 @@ import com.dzg.common.core.constant.SystemConstants;
 import com.dzg.common.core.exception.ServiceException;
 import com.dzg.common.core.utils.*;
 import com.dzg.common.mybatis.helper.DataBaseHelper;
-import com.dzg.warm.flow.core.service.DefService;
-import com.dzg.warm.flow.orm.entity.FlowDefinition;
-import com.dzg.warm.flow.ui.service.CategoryService;
+import org.dromara.warm.flow.core.service.DefService;
+import org.dromara.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.warm.flow.ui.service.CategoryService;
 import com.dzg.workflow.common.ConditionalOnEnable;
 import com.dzg.workflow.common.constant.FlowConstant;
 import com.dzg.workflow.domain.FlowCategory;
@@ -119,9 +119,9 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService, CategoryServ
      * @return 分类树结构列表
      */
     @Override
-    public List<com.dzg.warm.flow.core.dto.Tree> queryCategory() {
+    public List<org.dromara.warm.flow.core.dto.Tree> queryCategory() {
         List<FlowCategoryVo> list = this.queryList(new FlowCategoryBo());
-        return StreamUtils.toList(list, category -> new com.dzg.warm.flow.core.dto.Tree()
+        return StreamUtils.toList(list, category -> new org.dromara.warm.flow.core.dto.Tree()
             .setId(Convert.toStr(category.getCategoryId()))
             .setName(category.getCategoryName())
             .setParentId(Convert.toStr(category.getParentId()))

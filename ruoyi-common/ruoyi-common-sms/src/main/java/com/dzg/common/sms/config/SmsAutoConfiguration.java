@@ -3,7 +3,7 @@ package com.dzg.common.sms.config;
 import com.dzg.common.redis.config.RedisConfiguration;
 import com.dzg.common.sms.core.dao.PlusSmsDao;
 import com.dzg.common.sms.handler.SmsExceptionHandler;
-import com.dzg.sms4j.api.dao.SmsDao;
+import org.dromara.sms4j.api.dao.SmsDao;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;

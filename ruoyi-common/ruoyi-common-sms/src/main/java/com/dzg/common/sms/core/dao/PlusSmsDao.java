@@ -2,7 +2,7 @@ package com.dzg.common.sms.core.dao;
 
 import com.dzg.common.core.constant.GlobalConstants;
 import com.dzg.common.redis.utils.RedisUtils;
-import com.dzg.sms4j.api.dao.SmsDao;
+import org.dromara.sms4j.api.dao.SmsDao;
 
 import java.time.Duration;
 

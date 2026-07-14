@@ -11,7 +11,7 @@ import com.dzg.common.log.enums.BusinessType;
 import com.dzg.common.mybatis.core.page.PageQuery;
 import com.dzg.common.mybatis.core.page.TableDataInfo;
 import com.dzg.common.web.core.BaseController;
-import com.dzg.warm.flow.core.service.InsService;
+import org.dromara.warm.flow.core.service.InsService;
 import com.dzg.workflow.common.ConditionalOnEnable;
 import com.dzg.workflow.domain.bo.FlowCancelBo;
 import com.dzg.workflow.domain.bo.FlowInstanceBo;
