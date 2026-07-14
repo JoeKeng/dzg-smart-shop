@@ -10,14 +10,14 @@
 
     <div class="toolbar">
       <el-input v-model="query.supplierName" clearable placeholder="供应商名称" @keyup.enter="loadSuppliers" />
-      <el-input v-model="query.phone" clearable placeholder="联系电话" @keyup.enter="loadSuppliers" />
+      <el-input v-model="query.phone" clearable maxlength="11" placeholder="手机号" @input="query.phone = onlyDigits(query.phone)" @keyup.enter="loadSuppliers" />
       <el-button class="action-button" icon="Search" @click="loadSuppliers">查询</el-button>
     </div>
 
     <el-table v-loading="loading" border :data="suppliers">
       <el-table-column label="供应商" prop="supplierName" min-width="180" />
       <el-table-column label="联系人" prop="contactName" width="120" />
-      <el-table-column label="电话" prop="phone" width="150" />
+      <el-table-column label="手机号" prop="phone" width="150" />
       <el-table-column label="地址" prop="address" min-width="180" />
       <el-table-column label="操作" width="150" fixed="right">
         <template #default="{ row }">
@@ -36,8 +36,8 @@
         <el-form-item label="联系人">
           <el-input v-model="form.contactName" placeholder="联系人姓名" />
         </el-form-item>
-        <el-form-item label="电话">
-          <el-input v-model="form.phone" placeholder="手机号或座机" />
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="form.phone" maxlength="11" placeholder="11位手机号" @input="form.phone = onlyDigits(form.phone)" />
         </el-form-item>
         <el-form-item label="地址">
           <el-input v-model="form.address" placeholder="供应商地址" />
@@ -66,9 +66,13 @@ const dialogVisible = ref(false);
 const formRef = ref<ElFormInstance>();
 const query = reactive({ pageNum: 1, pageSize: 10, supplierName: '', phone: '' });
 const form = reactive<ShopSupplier>({});
+const phoneRule = { pattern: /^\d{11}$/, message: '手机号必须是11位数字', trigger: 'blur' };
 const rules = {
-  supplierName: [{ required: true, message: '请输入供应商名称', trigger: 'blur' }]
+  supplierName: [{ required: true, message: '请输入供应商名称', trigger: 'blur' }],
+  phone: [phoneRule]
 };
+
+const onlyDigits = (value?: string) => String(value || '').replace(/\D/g, '').slice(0, 11);
 
 const loadSuppliers = async () => {
   loading.value = true;

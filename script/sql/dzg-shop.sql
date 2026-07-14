@@ -1,9 +1,10 @@
 -- 店掌柜智慧零售管理系统业务初始化脚本
 -- 第一阶段：商品、库存、客户、收银、赊账、采购、报表、提醒
--- 注意：第一阶段业务表与 sys_menu 菜单表都放在系统主库 dzg_cloud，不单独使用 dzg_shop 数据库。
+-- 注意：业务表放在 dzg_shop；菜单权限放在系统主库 dzg_cloud。
 
 create database if not exists dzg_cloud default character set utf8mb4 collate utf8mb4_general_ci;
-use dzg_cloud;
+create database if not exists dzg_shop default character set utf8mb4 collate utf8mb4_general_ci;
+use dzg_shop;
 
 drop table if exists dzg_repayment;
 drop table if exists dzg_credit_record;
@@ -272,6 +273,8 @@ create table dzg_notification (
 ) engine=innodb comment='店掌柜经营提醒';
 
 -- 店铺经营菜单。导入前请确认这些 menu_id 未被占用。
+use dzg_cloud;
+
 insert into sys_menu values ('20000', '店铺经营', '0', '1', 'shop', null, '', 1, 0, 'M', '0', '0', '', 'shop', 103, 1, sysdate(), null, null, '店掌柜店铺经营目录');
 insert into sys_menu values ('20001', '首页看板', '20000', '1', 'dashboard', 'shop/dashboard/index', '', 1, 0, 'C', '1', '0', 'shop:dashboard:list', 'dashboard', 103, 1, sysdate(), null, null, '首页经营看板，演示阶段使用顶部首页');
 insert into sys_menu values ('20002', '收银台', '20000', '2', 'cashier', 'shop/cashier/index', '', 1, 0, 'C', '0', '0', 'shop:cashier:add', 'money', 103, 1, sysdate(), null, null, '快速收银台');

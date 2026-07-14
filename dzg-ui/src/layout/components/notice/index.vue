@@ -19,12 +19,13 @@
       </template>
       <el-empty v-else :description="'消息为空'"></el-empty>
     </div>
-    <div v-if="newsList.length > 0" class="foot-box" @click="onGoToGiteeClick">前往gitee</div>
+    <div v-if="newsList.length > 0" class="foot-box" @click="onGoToNotificationClick">进入提醒中心</div>
   </div>
 </template>
 
 <script setup lang="ts" name="layoutBreadcrumbUserNews">
 import { useNoticeStore } from '@/store/modules/notice';
+import router from '@/router';
 
 const noticeStore = useNoticeStore();
 const { readAll } = useNoticeStore();
@@ -52,9 +53,9 @@ const onNewsClick = (item: any) => {
   noticeStore.state.notices = newsList.value;
 };
 
-// 前往通知中心点击
-const onGoToGiteeClick = () => {
-  window.open('https://gitee.com/dromara/RuoYi-Vue-Plus/tree/5.X/');
+// 前往提醒中心
+const onGoToNotificationClick = () => {
+  router.push('/shop/notification');
 };
 
 onMounted(() => {

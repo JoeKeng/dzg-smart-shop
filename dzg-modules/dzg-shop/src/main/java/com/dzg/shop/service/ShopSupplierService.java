@@ -3,6 +3,7 @@ package com.dzg.shop.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dzg.common.core.exception.ServiceException;
 import com.dzg.common.core.utils.StringUtils;
 import com.dzg.common.mybatis.core.page.PageQuery;
 import com.dzg.common.mybatis.core.page.TableDataInfo;
@@ -29,6 +30,7 @@ public class ShopSupplierService {
     }
 
     public void saveSupplier(ShopSupplier supplier) {
+        validatePhone(supplier.getPhone());
         if (supplier.getStatus() == null) {
             supplier.setStatus(ShopConstants.NORMAL);
         }
@@ -50,5 +52,11 @@ public class ShopSupplierService {
         lqw.eq(StringUtils.isNotBlank(query.getStatus()), ShopSupplier::getStatus, query.getStatus());
         lqw.orderByDesc(ShopSupplier::getCreateTime);
         return lqw;
+    }
+
+    private void validatePhone(String phone) {
+        if (StringUtils.isNotBlank(phone) && !phone.matches("\\d{11}")) {
+            throw new ServiceException("手机号必须是11位数字");
+        }
     }
 }

@@ -7,7 +7,7 @@
 
     <div class="toolbar">
       <el-input v-model="query.customerName" clearable placeholder="客户姓名" @keyup.enter="loadCustomers" />
-      <el-input v-model="query.phone" clearable placeholder="手机号" @keyup.enter="loadCustomers" />
+      <el-input v-model="query.phone" clearable maxlength="11" placeholder="手机号" @input="query.phone = onlyDigits(query.phone)" @keyup.enter="loadCustomers" />
       <el-button class="action-button" icon="Search" @click="loadCustomers">查询</el-button>
     </div>
 
@@ -34,8 +34,8 @@
         <el-form-item label="姓名" prop="customerName">
           <el-input v-model="form.customerName" placeholder="客户姓名" />
         </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="form.phone" placeholder="手机号" />
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="form.phone" maxlength="11" placeholder="11位手机号" @input="form.phone = onlyDigits(form.phone)" />
         </el-form-item>
         <el-form-item label="赊账额度">
           <el-input-number v-model="form.creditLimit" :min="0" :precision="2" :step="10" />
@@ -64,11 +64,14 @@ const dialogVisible = ref(false);
 const formRef = ref<ElFormInstance>();
 const query = reactive({ pageNum: 1, pageSize: 10, customerName: '', phone: '' });
 const form = reactive<ShopCustomer>({});
+const phoneRule = { pattern: /^\d{11}$/, message: '手机号必须是11位数字', trigger: 'blur' };
 const rules = {
-  customerName: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }]
+  customerName: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
+  phone: [phoneRule]
 };
 
 const money = (value?: number) => Number(value || 0).toFixed(2);
+const onlyDigits = (value?: string) => String(value || '').replace(/\D/g, '').slice(0, 11);
 
 const loadCustomers = async () => {
   loading.value = true;

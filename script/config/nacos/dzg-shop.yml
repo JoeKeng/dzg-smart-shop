@@ -3,15 +3,15 @@
 spring:
   datasource:
     dynamic:
-      # 店铺经营第一阶段复用系统主库，业务表 dzg_* 放在 dzg_cloud。
+      # 店铺经营服务默认数据源使用 dzg_shop；框架菜单和权限仍在 dzg_cloud。
       primary: master
       datasource:
         master:
           type: ${spring.datasource.type}
           driver-class-name: com.mysql.cj.jdbc.Driver
-          url: ${datasource.system-master.url}
-          username: ${datasource.system-master.username}
-          password: ${datasource.system-master.password}
+          url: ${datasource.shop.url}
+          username: ${datasource.shop.username}
+          password: ${datasource.shop.password}
   cloud:
     sentinel:
       enabled: false
