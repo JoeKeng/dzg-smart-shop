@@ -63,6 +63,13 @@ spring:
                 - Path=/system/**,/monitor/**
               filters:
                 - StripPrefix=1
+            # 店铺经营服务
+            - id: dzg-shop
+              uri: lb://dzg-shop
+              predicates:
+                - Path=/shop/**
+              filters:
+                - StripPrefix=1
             # 资源服务
             - id: dzg-resource
               uri: lb://dzg-resource

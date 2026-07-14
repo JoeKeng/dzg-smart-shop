@@ -1,0 +1,20 @@
+# 店掌柜店铺经营模块配置
+
+spring:
+  datasource:
+    dynamic:
+      # 店铺经营第一阶段复用系统主库，业务表 dzg_* 放在 dzg_cloud。
+      primary: master
+      datasource:
+        master:
+          type: ${spring.datasource.type}
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: ${datasource.system-master.url}
+          username: ${datasource.system-master.username}
+          password: ${datasource.system-master.password}
+  cloud:
+    sentinel:
+      enabled: false
+
+shop:
+  tenant-id: "000000"

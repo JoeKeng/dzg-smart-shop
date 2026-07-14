@@ -12,6 +12,24 @@ import { createCustomNameComponent } from '@/utils/createCustomNameComponent';
 
 // 匹配views里面所有的.vue文件
 const modules = import.meta.glob('./../../views/**/*.vue');
+
+const isLegacyOfficialRoute = (route: RouteRecordRaw): boolean => {
+  const title = String(route.meta?.title ?? route.name ?? '');
+  const path = String(route.path ?? '');
+  return title === 'PLUS官网' || path.includes('gitee.com/dromara') || path.includes('plus-doc.dromara.org');
+};
+
+const filterLegacyOfficialRoutes = (routeList: RouteRecordRaw[]): RouteRecordRaw[] => {
+  return routeList
+    .filter((route) => !isLegacyOfficialRoute(route))
+    .map((route) => {
+      if (route.children?.length) {
+        route.children = filterLegacyOfficialRoutes(route.children);
+      }
+      return route;
+    });
+};
+
 export const usePermissionStore = defineStore('permission', () => {
   const routes = ref<RouteRecordRaw[]>([]);
   const addRoutes = ref<RouteRecordRaw[]>([]);
@@ -48,9 +66,10 @@ export const usePermissionStore = defineStore('permission', () => {
   const generateRoutes = async (): Promise<RouteRecordRaw[]> => {
     const res = await getRouters();
     const { data } = res;
-    const sdata = JSON.parse(JSON.stringify(data));
-    const rdata = JSON.parse(JSON.stringify(data));
-    const defaultData = JSON.parse(JSON.stringify(data));
+    const menuData = filterLegacyOfficialRoutes(JSON.parse(JSON.stringify(data)));
+    const sdata = JSON.parse(JSON.stringify(menuData));
+    const rdata = JSON.parse(JSON.stringify(menuData));
+    const defaultData = JSON.parse(JSON.stringify(menuData));
     const sidebarRoutes = filterAsyncRouter(sdata);
     const rewriteRoutes = filterAsyncRouter(rdata, undefined, true);
     const defaultRoutes = filterAsyncRouter(defaultData);

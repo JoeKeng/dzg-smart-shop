@@ -103,10 +103,10 @@ spring:
   # redis通用配置 子服务可以自行配置进行覆盖
   data:
     redis:
-      host: localhost
+      host: ${REDIS_HOST:127.0.0.1}
       port: 6379
       # redis 密码必须配置
-      password: ruoyi123
+      password: ${REDIS_PASSWORD}
       database: 0
       # 需要使用数字
       timeout: 10000
@@ -282,7 +282,7 @@ seata:
 # 多租户配置
 tenant:
   # 是否开启
-  enable: true
+  enable: false
   # 排除表
   excludes:
     - sys_menu

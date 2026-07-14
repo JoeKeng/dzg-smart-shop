@@ -17,7 +17,7 @@
 
     <artifactId>dzg-visual</artifactId>
     <packaging>pom</packaging>
-
+    <!-- 初始化文档：https://plus-doc.dromara.org/#/ruoyi-cloud-plus/quickstart/init -->
     <description>
         dzg-visual图形化管理模块
     </description>

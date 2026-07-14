@@ -114,8 +114,8 @@ const codeUrl = ref('');
 const loading = ref(false);
 // 验证码开关
 const captchaEnabled = ref(true);
-// 租户开关
-const tenantEnabled = ref(true);
+// 店掌柜默认使用固定租户，登录页不展示租户选择。
+const tenantEnabled = ref(false);
 
 // 注册开关
 const register = ref(false);
@@ -200,6 +200,10 @@ const getLoginData = () => {
  * 获取租户列表
  */
 const initTenantList = async () => {
+  tenantEnabled.value = false;
+  loginForm.value.tenantId = '000000';
+  localStorage.setItem('tenantId', '000000');
+  return;
   const { data } = await getTenantList(false);
   tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
   if (tenantEnabled.value) {

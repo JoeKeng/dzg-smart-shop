@@ -75,8 +75,8 @@
                 <nacos.server>127.0.0.1:8848</nacos.server>
                 <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
                 <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
-                <nacos.username>nacos</nacos.username>
-                <nacos.password>nacos</nacos.password>
+                <nacos.username></nacos.username>
+                <nacos.password></nacos.password>
                 <logstash.address>127.0.0.1:4560</logstash.address>
             </properties>
             <activation>
