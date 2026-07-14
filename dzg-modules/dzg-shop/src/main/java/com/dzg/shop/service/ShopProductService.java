@@ -3,6 +3,7 @@ package com.dzg.shop.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dzg.common.core.constant.TenantConstants;
 import com.dzg.common.core.exception.ServiceException;
 import com.dzg.common.core.utils.StringUtils;
 import com.dzg.common.mybatis.core.page.PageQuery;
@@ -54,6 +55,7 @@ public class ShopProductService {
     }
 
     public void saveCategory(ShopCategory category) {
+        fillShopDefaults(category);
         if (category.getStatus() == null) {
             category.setStatus(ShopConstants.NORMAL);
         }
@@ -105,6 +107,7 @@ public class ShopProductService {
 
     @Transactional(rollbackFor = Exception.class)
     public void saveProduct(ShopProduct product) {
+        fillShopDefaults(product);
         if (product.getStatus() == null) {
             product.setStatus(ShopConstants.NORMAL);
         }
@@ -139,7 +142,12 @@ public class ShopProductService {
         if (query.getSupplierId() != null) {
             List<Long> productIds = productSupplierMapper.selectList(Wrappers.<ShopProductSupplier>lambdaQuery()
                     .eq(ShopProductSupplier::getSupplierId, query.getSupplierId())
-                    .eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL))
+                    .and(wrapper -> wrapper.eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL)
+                        .or()
+                        .isNull(ShopProductSupplier::getStatus))
+                    .and(wrapper -> wrapper.eq(ShopProductSupplier::getDelFlag, ShopConstants.NORMAL)
+                        .or()
+                        .isNull(ShopProductSupplier::getDelFlag)))
                 .stream()
                 .map(ShopProductSupplier::getProductId)
                 .filter(Objects::nonNull)
@@ -167,6 +175,7 @@ public class ShopProductService {
         int sortOrder = 0;
         for (Long supplierId : distinctIds) {
             ShopProductSupplier relation = new ShopProductSupplier();
+            fillShopDefaults(relation);
             relation.setProductId(productId);
             relation.setSupplierId(supplierId);
             relation.setSortOrder(sortOrder++);
@@ -179,7 +188,12 @@ public class ShopProductService {
     public Long countBySupplierId(Long supplierId) {
         return productSupplierMapper.selectCount(Wrappers.<ShopProductSupplier>lambdaQuery()
             .eq(ShopProductSupplier::getSupplierId, supplierId)
-            .eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL));
+            .and(wrapper -> wrapper.eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL)
+                .or()
+                .isNull(ShopProductSupplier::getStatus))
+            .and(wrapper -> wrapper.eq(ShopProductSupplier::getDelFlag, ShopConstants.NORMAL)
+                .or()
+                .isNull(ShopProductSupplier::getDelFlag)));
     }
 
     private void fillProductExtras(List<ShopProduct> products) {
@@ -201,7 +215,12 @@ public class ShopProductService {
             .toList();
         List<ShopProductSupplier> relations = productSupplierMapper.selectList(Wrappers.<ShopProductSupplier>lambdaQuery()
             .in(ShopProductSupplier::getProductId, productIds)
-            .eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL)
+            .and(wrapper -> wrapper.eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL)
+                .or()
+                .isNull(ShopProductSupplier::getStatus))
+            .and(wrapper -> wrapper.eq(ShopProductSupplier::getDelFlag, ShopConstants.NORMAL)
+                .or()
+                .isNull(ShopProductSupplier::getDelFlag))
             .orderByAsc(ShopProductSupplier::getSortOrder));
         List<Long> supplierIds = relations.stream()
             .map(ShopProductSupplier::getSupplierId)
@@ -221,14 +240,49 @@ public class ShopProductService {
             List<Long> ids = new ArrayList<>();
             List<String> names = new ArrayList<>();
             for (ShopProductSupplier relation : productRelations) {
+                if (relation.getSupplierId() == null) {
+                    continue;
+                }
+                ids.add(relation.getSupplierId());
                 ShopSupplier supplier = supplierMap.get(relation.getSupplierId());
                 if (supplier != null) {
-                    ids.add(supplier.getSupplierId());
                     names.add(supplier.getSupplierName());
+                } else {
+                    names.add("供应商ID " + relation.getSupplierId());
                 }
             }
             product.setSupplierIds(ids);
             product.setSupplierNames(String.join("、", names));
+        }
+    }
+
+    private void fillShopDefaults(ShopCategory category) {
+        if (StringUtils.isBlank(category.getTenantId())) {
+            category.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        }
+        if (category.getDelFlag() == null) {
+            category.setDelFlag(ShopConstants.NORMAL);
+        }
+    }
+
+    private void fillShopDefaults(ShopProduct product) {
+        if (StringUtils.isBlank(product.getTenantId())) {
+            product.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        }
+        if (product.getDelFlag() == null) {
+            product.setDelFlag(ShopConstants.NORMAL);
+        }
+    }
+
+    private void fillShopDefaults(ShopProductSupplier relation) {
+        if (StringUtils.isBlank(relation.getTenantId())) {
+            relation.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        }
+        if (relation.getStatus() == null) {
+            relation.setStatus(ShopConstants.NORMAL);
+        }
+        if (relation.getDelFlag() == null) {
+            relation.setDelFlag(ShopConstants.NORMAL);
         }
     }
 }

@@ -3,6 +3,7 @@ package com.dzg.shop.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dzg.common.core.constant.TenantConstants;
 import com.dzg.common.core.exception.ServiceException;
 import com.dzg.common.core.utils.StringUtils;
 import com.dzg.common.mybatis.core.page.PageQuery;
@@ -33,8 +34,14 @@ public class ShopSupplierService {
 
     public void saveSupplier(ShopSupplier supplier) {
         validatePhone(supplier.getPhone());
+        if (StringUtils.isBlank(supplier.getTenantId())) {
+            supplier.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        }
         if (supplier.getStatus() == null) {
             supplier.setStatus(ShopConstants.NORMAL);
+        }
+        if (supplier.getDelFlag() == null) {
+            supplier.setDelFlag(ShopConstants.NORMAL);
         }
         if (supplier.getSupplierId() == null) {
             supplierMapper.insert(supplier);
@@ -54,7 +61,13 @@ public class ShopSupplierService {
         LambdaQueryWrapper<ShopSupplier> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(query.getSupplierName()), ShopSupplier::getSupplierName, query.getSupplierName());
         lqw.like(StringUtils.isNotBlank(query.getPhone()), ShopSupplier::getPhone, query.getPhone());
-        lqw.eq(StringUtils.isNotBlank(query.getStatus()), ShopSupplier::getStatus, query.getStatus());
+        if (ShopConstants.NORMAL.equals(query.getStatus())) {
+            lqw.and(wrapper -> wrapper.eq(ShopSupplier::getStatus, ShopConstants.NORMAL)
+                .or()
+                .isNull(ShopSupplier::getStatus));
+        } else {
+            lqw.eq(StringUtils.isNotBlank(query.getStatus()), ShopSupplier::getStatus, query.getStatus());
+        }
         lqw.orderByDesc(ShopSupplier::getCreateTime);
         return lqw;
     }

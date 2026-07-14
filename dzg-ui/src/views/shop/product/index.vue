@@ -43,7 +43,7 @@
         <template #default="{ row }">{{ row.categoryName || categoryName(row.categoryId) || '未分类' }}</template>
       </el-table-column>
       <el-table-column label="常用供应商" min-width="180" show-overflow-tooltip>
-        <template #default="{ row }">{{ row.supplierNames || '未绑定' }}</template>
+        <template #default="{ row }">{{ supplierNameText(row) }}</template>
       </el-table-column>
       <el-table-column label="条码" prop="barcode" min-width="130" />
       <el-table-column label="售价" width="120" align="right">
@@ -173,6 +173,15 @@ const moneyFormatter = new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2
 const money = (value?: number) => moneyFormatter.format(Number(value || 0));
 
 const categoryName = (categoryId?: string | number) => categories.value.find((item) => String(item.categoryId) === String(categoryId))?.categoryName;
+const supplierName = (supplierId?: string | number) => suppliers.value.find((item) => String(item.supplierId) === String(supplierId))?.supplierName;
+
+const supplierNameText = (row: ShopProduct) => {
+  if (row.supplierNames) {
+    return row.supplierNames;
+  }
+  const names = (row.supplierIds || []).map((id) => supplierName(id)).filter(Boolean);
+  return names.length ? names.join('、') : '未绑定';
+};
 
 const loadProducts = async () => {
   loading.value = true;

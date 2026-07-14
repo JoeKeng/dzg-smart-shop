@@ -103,6 +103,8 @@ dzg_cloud.sys_menu
 
 ```text
 script/sql/update/dzg-shop-extend-menu.sql
+script/sql/update/dzg-shop-fix-product-supplier.sql
+script/sql/update/dzg-shop-demo-data.sql
 ```
 
 该补丁用于已有数据库，包含：
@@ -113,6 +115,12 @@ script/sql/update/dzg-shop-extend-menu.sql
 - 插入常用商品分类
 - 补齐店铺经营菜单
 - 隐藏重复的店铺首页看板
+
+运行故障复盘和多人联调排查见：
+
+```text
+docs/dzg-shop-runtime-troubleshooting.md
+```
 
 ## 5. OSS 与资源服务
 
@@ -231,6 +239,7 @@ order by sort_order;
 - 命令行 Maven 在 Windows 环境可能出现 `An unknown compilation problem occurred / 无法关闭编译器资源`，且没有源码行。当前按环境问题记录。
 - 文档和配置中不能写真实服务器密码，测试阶段明文只允许放在 Nacos 控制台或本机未提交配置。
 - 菜单来自数据库，前端页面新增后仍需要确认 `sys_menu` 和角色权限。
+- 多人同时运行 `dzg-shop` 并注册到同一个 Nacos namespace/group 时，Gateway 会负载均衡到不同实例，可能出现接口偶发 500、字段不一致、供应商关联不显示等问题。联调前先确认 Nacos 中目标服务只有一个有效实例。
 
 ## 10. 下一步建议
 
