@@ -59,6 +59,7 @@
 
 <script setup name="ShopStock" lang="ts">
 import { adjustStock, listStock, listStockLog, productOptions } from '@/api/shop';
+import { optionList } from '@/api/shop/response';
 import { ShopProduct, ShopStock } from '@/api/shop/types';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
@@ -90,7 +91,7 @@ const loadLogs = async () => {
 
 const loadProducts = async () => {
   const res = await productOptions({});
-  products.value = res.data || [];
+  products.value = optionList<ShopProduct>(res);
 };
 
 const submitAdjust = async () => {

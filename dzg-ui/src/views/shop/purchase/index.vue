@@ -75,6 +75,7 @@
 
 <script setup name="ShopPurchase" lang="ts">
 import { createPurchase, listPurchase, productOptions, supplierOptions } from '@/api/shop';
+import { optionList } from '@/api/shop/response';
 import { ShopProduct, ShopPurchaseForm, ShopSupplier } from '@/api/shop/types';
 
 type PurchaseLine = { productId?: string | number; quantity: number; purchasePrice: number };
@@ -112,7 +113,7 @@ const fillPrice = (row: PurchaseLine) => {
 
 const loadProducts = async () => {
   const productRes = await productOptions(form.supplierId ? { supplierId: form.supplierId } : {});
-  products.value = productRes.data || [];
+  products.value = optionList<ShopProduct>(productRes);
 };
 
 const handleSupplierChange = async () => {
@@ -135,7 +136,7 @@ const showAllProducts = async () => {
 const loadOptions = async () => {
   await loadProducts();
   const supplierRes = await supplierOptions({});
-  suppliers.value = supplierRes.data || [];
+  suppliers.value = optionList<ShopSupplier>(supplierRes);
 };
 
 const loadPurchases = async () => {
@@ -156,6 +157,7 @@ const submitPurchase = async () => {
     form.supplierId = undefined;
     form.remark = '';
     form.items = [{ productId: undefined, quantity: 1, purchasePrice: 0 }];
+    await loadProducts();
     await loadPurchases();
   } finally {
     submitting.value = false;

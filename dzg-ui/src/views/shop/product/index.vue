@@ -138,6 +138,7 @@
 
 <script setup name="ShopProduct" lang="ts">
 import { categoryOptions, deleteProduct, listProduct, saveCategory, saveProduct, supplierOptions } from '@/api/shop';
+import { optionList } from '@/api/shop/response';
 import { ShopCategory, ShopProduct, ShopSupplier } from '@/api/shop/types';
 import { listByIds } from '@/api/system/oss';
 import ImagePreview from '@/components/ImagePreview/index.vue';
@@ -171,7 +172,7 @@ const categoryRules = {
 const moneyFormatter = new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const money = (value?: number) => moneyFormatter.format(Number(value || 0));
 
-const categoryName = (categoryId?: string | number) => categories.value.find((item) => item.categoryId === categoryId)?.categoryName;
+const categoryName = (categoryId?: string | number) => categories.value.find((item) => String(item.categoryId) === String(categoryId))?.categoryName;
 
 const loadProducts = async () => {
   loading.value = true;
@@ -201,7 +202,7 @@ const loadCategories = async () => {
   categoryLoading.value = true;
   try {
     const res = await categoryOptions();
-    categories.value = res.data || [];
+    categories.value = optionList<ShopCategory>(res);
   } catch {
     categories.value = [];
     proxy?.$modal.msgError('商品分类加载失败，请检查 Shop 服务和数据库分类表');
@@ -212,7 +213,7 @@ const loadCategories = async () => {
 
 const loadSuppliers = async () => {
   const res = await supplierOptions({ status: '0' });
-  suppliers.value = res.data || [];
+  suppliers.value = optionList<ShopSupplier>(res);
 };
 
 const resetQuery = async () => {

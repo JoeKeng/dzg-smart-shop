@@ -26,6 +26,7 @@
 
 <script setup name="ShopNotification" lang="ts">
 import { listNotification } from '@/api/shop';
+import { optionList } from '@/api/shop/response';
 import { ShopNotification } from '@/api/shop/types';
 
 const loading = ref(false);
@@ -35,7 +36,7 @@ const loadNotices = async () => {
   loading.value = true;
   try {
     const res = await listNotification();
-    notices.value = res.data || [];
+    notices.value = optionList<ShopNotification>(res);
   } finally {
     loading.value = false;
   }

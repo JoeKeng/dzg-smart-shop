@@ -57,6 +57,7 @@
 
 <script setup name="ShopCashier" lang="ts">
 import { createCashierOrder, customerOptions, productOptions } from '@/api/shop';
+import { optionList } from '@/api/shop/response';
 import { ShopCustomer, ShopProduct } from '@/api/shop/types';
 
 interface CartItem extends ShopProduct {
@@ -82,12 +83,12 @@ const money = (value?: number) => Number(value || 0).toFixed(2);
 
 const loadProducts = async () => {
   const res = await productOptions(keyword.value ? { productName: keyword.value } : {});
-  products.value = res.data || [];
+  products.value = optionList<ShopProduct>(res);
 };
 
 const loadCustomers = async () => {
   const res = await customerOptions({});
-  customers.value = res.data || [];
+  customers.value = optionList<ShopCustomer>(res);
 };
 
 const searchProduct = async () => {
