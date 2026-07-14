@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.dzg</groupId>
+        <artifactId>dzg-smart-shop</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>dzg-api-bom</module>
+        <module>dzg-api-system</module>
+        <module>dzg-api-resource</module>
+        <module>dzg-api-workflow</module>
+    </modules>
+
+    <artifactId>dzg-api</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        dzg-api系统接口
+    </description>
+
+</project>

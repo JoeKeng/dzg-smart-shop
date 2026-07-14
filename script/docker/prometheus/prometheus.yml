@@ -36,7 +36,7 @@ scrape_configs:
       username: ruoyi
       password: 123456
 
-  - job_name: RuoYi-Cloud-Plus
+  - job_name: 店掌柜智慧零售管理系统
     honor_timestamps: true
     scrape_interval: 15s
     scrape_timeout: 10s

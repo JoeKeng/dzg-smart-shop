@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.dzg</groupId>
+        <artifactId>dzg-modules</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>dzg-job</artifactId>
+
+    <description>
+        dzg-job 任务调度模块
+    </description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-nacos</artifactId>
+        </dependency>
+
+        <!-- DZG Common Log -->
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-log</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-dubbo</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-mybatis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-job</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-tenant</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.dzg</groupId>
+                    <artifactId>dzg-common-mybatis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-common-security</artifactId>
+        </dependency>
+
+        <!-- DZG Api System -->
+        <dependency>
+            <groupId>com.dzg</groupId>
+            <artifactId>dzg-api-system</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

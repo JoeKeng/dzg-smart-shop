@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.dzg</groupId>
+        <artifactId>dzg-smart-shop</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>dzg-common-bom</module>
+        <module>dzg-common-alibaba-bom</module>
+        <module>dzg-common-log</module>
+        <module>dzg-common-service-impl</module>
+        <module>dzg-common-excel</module>
+        <module>dzg-common-core</module>
+        <module>dzg-common-redis</module>
+        <module>dzg-common-doc</module>
+        <module>dzg-common-security</module>
+        <module>dzg-common-satoken</module>
+        <module>dzg-common-web</module>
+        <module>dzg-common-mybatis</module>
+        <module>dzg-common-job</module>
+        <module>dzg-common-dubbo</module>
+        <module>dzg-common-seata</module>
+        <module>dzg-common-loadbalancer</module>
+        <module>dzg-common-oss</module>
+        <module>dzg-common-ratelimiter</module>
+        <module>dzg-common-idempotent</module>
+        <module>dzg-common-mail</module>
+        <module>dzg-common-sms</module>
+        <module>dzg-common-logstash</module>
+        <module>dzg-common-elasticsearch</module>
+        <module>dzg-common-skylog</module>
+        <module>dzg-common-prometheus</module>
+        <module>dzg-common-translation</module>
+        <module>dzg-common-sensitive</module>
+        <module>dzg-common-json</module>
+        <module>dzg-common-encrypt</module>
+        <module>dzg-common-tenant</module>
+        <module>dzg-common-websocket</module>
+        <module>dzg-common-social</module>
+        <module>dzg-common-nacos</module>
+        <module>dzg-common-bus</module>
+        <module>dzg-common-sse</module>
+    </modules>
+
+    <artifactId>dzg-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        dzg-common通用模块
+    </description>
+
+</project>

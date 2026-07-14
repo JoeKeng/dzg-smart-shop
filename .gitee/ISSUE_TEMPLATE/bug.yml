@@ -25,7 +25,7 @@ body:
     attributes:
       label: 这个问题是否已经存在？
       options:
-        - label: 我已经搜索过现有的问题 (https://gitee.com/dromara/RuoYi-Cloud-Plus/issues)
+        - label: 我已经搜索过现有的问题 (https://gitee.com/dromara/店掌柜智慧零售管理系统/issues)
           required: true
   - type: textarea
     attributes:
