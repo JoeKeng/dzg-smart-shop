@@ -9,6 +9,7 @@ export interface ShopCategory {
 export interface ShopProduct {
   productId?: string | number;
   categoryId?: string | number;
+  categoryName?: string;
   productName?: string;
   barcode?: string;
   unitName?: string;
@@ -16,6 +17,10 @@ export interface ShopProduct {
   purchasePrice?: number;
   warningQty?: number;
   imageUrl?: string;
+  imageOssId?: string;
+  supplierId?: string | number;
+  supplierIds?: Array<string | number>;
+  supplierNames?: string;
   status?: string;
   remark?: string;
 }
@@ -75,6 +80,7 @@ export interface ShopSupplier {
   contactName?: string;
   phone?: string;
   address?: string;
+  productCount?: number;
   status?: string;
   remark?: string;
 }

@@ -9,13 +9,25 @@ import com.dzg.common.mybatis.core.page.PageQuery;
 import com.dzg.common.mybatis.core.page.TableDataInfo;
 import com.dzg.shop.domain.ShopCategory;
 import com.dzg.shop.domain.ShopProduct;
+import com.dzg.shop.domain.ShopProductSupplier;
+import com.dzg.shop.domain.ShopSupplier;
 import com.dzg.shop.mapper.ShopCategoryMapper;
 import com.dzg.shop.mapper.ShopProductMapper;
+import com.dzg.shop.mapper.ShopProductSupplierMapper;
+import com.dzg.shop.mapper.ShopSupplierMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -23,6 +35,8 @@ public class ShopProductService {
 
     private final ShopCategoryMapper categoryMapper;
     private final ShopProductMapper productMapper;
+    private final ShopProductSupplierMapper productSupplierMapper;
+    private final ShopSupplierMapper supplierMapper;
     private final ShopStockService stockService;
 
     public TableDataInfo<ShopCategory> categoryPage(ShopCategory query, PageQuery pageQuery) {
@@ -59,15 +73,20 @@ public class ShopProductService {
 
     public TableDataInfo<ShopProduct> productPage(ShopProduct query, PageQuery pageQuery) {
         Page<ShopProduct> page = productMapper.selectPage(pageQuery.build(), productWrapper(query));
+        fillProductExtras(page.getRecords());
         return TableDataInfo.build(page);
     }
 
     public List<ShopProduct> productList(ShopProduct query) {
-        return productMapper.selectList(productWrapper(query));
+        List<ShopProduct> list = productMapper.selectList(productWrapper(query));
+        fillProductExtras(list);
+        return list;
     }
 
     public ShopProduct getProduct(Long productId) {
-        return productMapper.selectById(productId);
+        ShopProduct product = productMapper.selectById(productId);
+        fillProductExtras(product == null ? Collections.emptyList() : List.of(product));
+        return product;
     }
 
     public ShopProduct requireProduct(Long productId) {
@@ -100,6 +119,7 @@ public class ShopProductService {
         } else {
             productMapper.updateById(product);
         }
+        syncProductSuppliers(product.getProductId(), product.getSupplierIds());
         stockService.ensureStock(product.getProductId(), product.getWarningQty());
     }
 
@@ -108,12 +128,107 @@ public class ShopProductService {
     }
 
     private LambdaQueryWrapper<ShopProduct> productWrapper(ShopProduct query) {
+        if (query == null) {
+            query = new ShopProduct();
+        }
         LambdaQueryWrapper<ShopProduct> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(query.getProductName()), ShopProduct::getProductName, query.getProductName());
         lqw.eq(query.getCategoryId() != null, ShopProduct::getCategoryId, query.getCategoryId());
         lqw.like(StringUtils.isNotBlank(query.getBarcode()), ShopProduct::getBarcode, query.getBarcode());
         lqw.eq(StringUtils.isNotBlank(query.getStatus()), ShopProduct::getStatus, query.getStatus());
+        if (query.getSupplierId() != null) {
+            List<Long> productIds = productSupplierMapper.selectList(Wrappers.<ShopProductSupplier>lambdaQuery()
+                    .eq(ShopProductSupplier::getSupplierId, query.getSupplierId())
+                    .eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL))
+                .stream()
+                .map(ShopProductSupplier::getProductId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+            if (productIds.isEmpty()) {
+                lqw.eq(ShopProduct::getProductId, -1L);
+            } else {
+                lqw.in(ShopProduct::getProductId, productIds);
+            }
+        }
         lqw.orderByDesc(ShopProduct::getCreateTime);
         return lqw;
+    }
+
+    private void syncProductSuppliers(Long productId, List<Long> supplierIds) {
+        productSupplierMapper.delete(Wrappers.<ShopProductSupplier>lambdaQuery()
+            .eq(ShopProductSupplier::getProductId, productId));
+        if (supplierIds == null || supplierIds.isEmpty()) {
+            return;
+        }
+        Set<Long> distinctIds = supplierIds.stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        int sortOrder = 0;
+        for (Long supplierId : distinctIds) {
+            ShopProductSupplier relation = new ShopProductSupplier();
+            relation.setProductId(productId);
+            relation.setSupplierId(supplierId);
+            relation.setSortOrder(sortOrder++);
+            relation.setStatus(ShopConstants.NORMAL);
+            relation.setDelFlag(ShopConstants.NORMAL);
+            productSupplierMapper.insert(relation);
+        }
+    }
+
+    public Long countBySupplierId(Long supplierId) {
+        return productSupplierMapper.selectCount(Wrappers.<ShopProductSupplier>lambdaQuery()
+            .eq(ShopProductSupplier::getSupplierId, supplierId)
+            .eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL));
+    }
+
+    private void fillProductExtras(List<ShopProduct> products) {
+        if (products == null || products.isEmpty()) {
+            return;
+        }
+        List<Long> categoryIds = products.stream()
+            .map(ShopProduct::getCategoryId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, ShopCategory> categoryMap = categoryIds.isEmpty()
+            ? Collections.emptyMap()
+            : categoryMapper.selectByIds(categoryIds).stream().collect(Collectors.toMap(ShopCategory::getCategoryId, Function.identity()));
+
+        List<Long> productIds = products.stream()
+            .map(ShopProduct::getProductId)
+            .filter(Objects::nonNull)
+            .toList();
+        List<ShopProductSupplier> relations = productSupplierMapper.selectList(Wrappers.<ShopProductSupplier>lambdaQuery()
+            .in(ShopProductSupplier::getProductId, productIds)
+            .eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL)
+            .orderByAsc(ShopProductSupplier::getSortOrder));
+        List<Long> supplierIds = relations.stream()
+            .map(ShopProductSupplier::getSupplierId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, ShopSupplier> supplierMap = supplierIds.isEmpty()
+            ? Collections.emptyMap()
+            : supplierMapper.selectByIds(supplierIds).stream().collect(Collectors.toMap(ShopSupplier::getSupplierId, Function.identity()));
+        Map<Long, List<ShopProductSupplier>> relationMap = relations.stream()
+            .collect(Collectors.groupingBy(ShopProductSupplier::getProductId));
+
+        for (ShopProduct product : products) {
+            ShopCategory category = categoryMap.get(product.getCategoryId());
+            product.setCategoryName(category == null ? null : category.getCategoryName());
+            List<ShopProductSupplier> productRelations = relationMap.getOrDefault(product.getProductId(), Collections.emptyList());
+            List<Long> ids = new ArrayList<>();
+            List<String> names = new ArrayList<>();
+            for (ShopProductSupplier relation : productRelations) {
+                ShopSupplier supplier = supplierMap.get(relation.getSupplierId());
+                if (supplier != null) {
+                    ids.add(supplier.getSupplierId());
+                    names.add(supplier.getSupplierName());
+                }
+            }
+            product.setSupplierIds(ids);
+            product.setSupplierNames(String.join("、", names));
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.dzg.shop.domain;
 
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.dzg.common.tenant.core.TenantEntity;
@@ -29,4 +30,7 @@ public class ShopSupplier extends TenantEntity {
     private String delFlag;
 
     private String remark;
+
+    @TableField(exist = false)
+    private Long productCount;
 }

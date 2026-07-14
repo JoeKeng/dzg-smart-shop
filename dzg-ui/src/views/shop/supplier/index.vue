@@ -18,6 +18,11 @@
       <el-table-column label="供应商" prop="supplierName" min-width="180" />
       <el-table-column label="联系人" prop="contactName" width="120" />
       <el-table-column label="手机号" prop="phone" width="150" />
+      <el-table-column label="绑定商品" width="120" align="center">
+        <template #default="{ row }">
+          <strong class="count-text">{{ row.productCount || 0 }}</strong>
+        </template>
+      </el-table-column>
       <el-table-column label="地址" prop="address" min-width="180" />
       <el-table-column label="操作" width="150" fixed="right">
         <template #default="{ row }">
@@ -138,6 +143,11 @@ onMounted(loadSuppliers);
 .action-button {
   min-height: 44px;
   font-size: 16px;
+}
+.count-text {
+  color: #0f766e;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
 }
 :deep(.el-table) {
   font-size: 16px;

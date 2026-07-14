@@ -11,9 +11,12 @@
     <section class="purchase-panel">
       <el-form label-width="96px">
         <el-form-item label="供应商">
-          <el-select v-model="form.supplierId" clearable filterable placeholder="选择供应商">
-            <el-option v-for="item in suppliers" :key="item.supplierId" :label="item.supplierName" :value="item.supplierId" />
-          </el-select>
+          <div class="field-with-action">
+            <el-select v-model="form.supplierId" clearable filterable placeholder="选择供应商" @change="handleSupplierChange">
+              <el-option v-for="item in suppliers" :key="item.supplierId" :label="item.supplierName" :value="item.supplierId" />
+            </el-select>
+            <el-button class="action-button" icon="Goods" @click="showAllProducts">显示全部商品</el-button>
+          </div>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="form.remark" placeholder="例如：早上批发市场进货" />
@@ -107,10 +110,31 @@ const fillPrice = (row: PurchaseLine) => {
   row.purchasePrice = Number(product?.purchasePrice || 0);
 };
 
-const loadOptions = async () => {
-  const productRes = await productOptions({});
-  const supplierRes = await supplierOptions({});
+const loadProducts = async () => {
+  const productRes = await productOptions(form.supplierId ? { supplierId: form.supplierId } : {});
   products.value = productRes.data || [];
+};
+
+const handleSupplierChange = async () => {
+  form.items.forEach((item) => {
+    item.productId = undefined;
+    item.purchasePrice = 0;
+  });
+  await loadProducts();
+  if (form.supplierId && products.value.length === 0) {
+    proxy?.$modal.msgWarning('这个供应商还没有绑定商品，商品档案里可先绑定常用供应商');
+  }
+};
+
+const showAllProducts = async () => {
+  form.supplierId = undefined;
+  await loadProducts();
+  proxy?.$modal.msgSuccess('已显示全部商品');
+};
+
+const loadOptions = async () => {
+  await loadProducts();
+  const supplierRes = await supplierOptions({});
   suppliers.value = supplierRes.data || [];
 };
 
@@ -172,6 +196,14 @@ onMounted(() => {
   border-radius: 8px;
   background: #fff;
 }
+.field-with-action {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
+.field-with-action .el-select {
+  flex: 1;
+}
 .history-section {
   margin-top: 16px;
 }
@@ -193,7 +225,8 @@ onMounted(() => {
   font-size: 34px;
 }
 .primary-action,
-.finish-button {
+.finish-button,
+.action-button {
   min-height: 48px;
   font-size: 18px;
 }
@@ -203,5 +236,11 @@ onMounted(() => {
 }
 :deep(.el-table) {
   font-size: 16px;
+}
+@media (max-width: 768px) {
+  .field-with-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 </style>

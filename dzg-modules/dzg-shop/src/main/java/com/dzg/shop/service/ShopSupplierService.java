@@ -19,9 +19,11 @@ import java.util.List;
 public class ShopSupplierService {
 
     private final ShopSupplierMapper supplierMapper;
+    private final ShopProductService productService;
 
     public TableDataInfo<ShopSupplier> supplierPage(ShopSupplier query, PageQuery pageQuery) {
         Page<ShopSupplier> page = supplierMapper.selectPage(pageQuery.build(), supplierWrapper(query));
+        page.getRecords().forEach(supplier -> supplier.setProductCount(productService.countBySupplierId(supplier.getSupplierId())));
         return TableDataInfo.build(page);
     }
 
@@ -46,6 +48,9 @@ public class ShopSupplierService {
     }
 
     private LambdaQueryWrapper<ShopSupplier> supplierWrapper(ShopSupplier query) {
+        if (query == null) {
+            query = new ShopSupplier();
+        }
         LambdaQueryWrapper<ShopSupplier> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(query.getSupplierName()), ShopSupplier::getSupplierName, query.getSupplierName());
         lqw.like(StringUtils.isNotBlank(query.getPhone()), ShopSupplier::getPhone, query.getPhone());

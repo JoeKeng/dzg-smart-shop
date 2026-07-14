@@ -5,7 +5,15 @@
 create database if not exists dzg_shop default character set utf8mb4 collate utf8mb4_general_ci;
 
 insert ignore into dzg_shop.dzg_category select * from dzg_cloud.dzg_category;
-insert ignore into dzg_shop.dzg_product select * from dzg_cloud.dzg_product;
+insert ignore into dzg_shop.dzg_product (
+    product_id, tenant_id, category_id, product_name, barcode, unit_name, sale_price,
+    purchase_price, warning_qty, image_url, status, del_flag, create_dept, create_by,
+    create_time, update_by, update_time, remark
+) select
+    product_id, tenant_id, category_id, product_name, barcode, unit_name, sale_price,
+    purchase_price, warning_qty, image_url, status, del_flag, create_dept, create_by,
+    create_time, update_by, update_time, remark
+from dzg_cloud.dzg_product;
 insert ignore into dzg_shop.dzg_stock select * from dzg_cloud.dzg_stock;
 insert ignore into dzg_shop.dzg_stock_log select * from dzg_cloud.dzg_stock_log;
 insert ignore into dzg_shop.dzg_customer select * from dzg_cloud.dzg_customer;

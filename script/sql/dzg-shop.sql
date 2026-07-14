@@ -12,6 +12,7 @@ drop table if exists dzg_order_item;
 drop table if exists dzg_order;
 drop table if exists dzg_purchase_item;
 drop table if exists dzg_purchase_order;
+drop table if exists dzg_product_supplier;
 drop table if exists dzg_supplier;
 drop table if exists dzg_notification;
 drop table if exists dzg_customer;
@@ -47,6 +48,7 @@ create table dzg_product (
     purchase_price decimal(12,2)  default 0.00 comment '进价',
     warning_qty    int            default 10 comment '库存预警值',
     image_url      varchar(500)   default null comment '图片地址',
+    image_oss_id   varchar(255)   default null comment '图片OSS ID',
     status         char(1)        default '0' comment '状态',
     del_flag       char(1)        default '0' comment '删除标志',
     create_dept    bigint(20)     default null comment '创建部门',
@@ -59,6 +61,13 @@ create table dzg_product (
     key idx_dzg_product_name (product_name),
     key idx_dzg_product_barcode (barcode)
 ) engine=innodb comment='店掌柜商品档案';
+
+insert into dzg_category values
+(21001001, '000000', '饮料酒水', 1, '0', '0', 103, 1, sysdate(), null, null, '常用商品分类'),
+(21001002, '000000', '休闲零食', 2, '0', '0', 103, 1, sysdate(), null, null, '常用商品分类'),
+(21001003, '000000', '粮油调味', 3, '0', '0', 103, 1, sysdate(), null, null, '常用商品分类'),
+(21001004, '000000', '日用百货', 4, '0', '0', 103, 1, sysdate(), null, null, '常用商品分类'),
+(21001005, '000000', '清洁纸品', 5, '0', '0', 103, 1, sysdate(), null, null, '常用商品分类');
 
 create table dzg_stock (
     stock_id    bigint(20)  not null comment '库存ID',
@@ -214,6 +223,25 @@ create table dzg_supplier (
     primary key (supplier_id),
     key idx_dzg_supplier_name (supplier_name)
 ) engine=innodb comment='店掌柜供应商';
+
+create table dzg_product_supplier (
+    id          bigint(20)  not null comment '主键ID',
+    tenant_id   varchar(20) default '000000' comment '租户编号',
+    product_id  bigint(20)  not null comment '商品ID',
+    supplier_id bigint(20)  not null comment '供应商ID',
+    sort_order  int         default 0 comment '排序',
+    status      char(1)     default '0' comment '状态',
+    del_flag    char(1)     default '0' comment '删除标志',
+    create_dept bigint(20)  default null comment '创建部门',
+    create_by   bigint(20)  default null comment '创建者',
+    create_time datetime    default null comment '创建时间',
+    update_by   bigint(20)  default null comment '更新者',
+    update_time datetime    default null comment '更新时间',
+    primary key (id),
+    unique key uk_dzg_product_supplier (tenant_id, product_id, supplier_id),
+    key idx_dzg_product_supplier_product (product_id),
+    key idx_dzg_product_supplier_supplier (supplier_id)
+) engine=innodb comment='店掌柜商品供应商关联';
 
 create table dzg_purchase_order (
     purchase_id   bigint(20)    not null comment '采购单ID',
