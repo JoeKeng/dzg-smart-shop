@@ -1,1 +1,1 @@
-org.dromara.common.sms.config.SmsAutoConfiguration
+com.dzg.common.sms.config.SmsAutoConfiguration

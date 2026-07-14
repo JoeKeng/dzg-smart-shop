@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.dromara</groupId>
+    <groupId>com.dzg</groupId>
     <artifactId>ruoyi-cloud-plus</artifactId>
     <version>${revision}</version>
 
@@ -113,7 +113,7 @@
 
             <!-- SpringCloud Alibaba 微服务 -->
             <dependency>
-                <groupId>org.dromara</groupId>
+                <groupId>com.dzg</groupId>
                 <artifactId>ruoyi-common-alibaba-bom</artifactId>
                 <version>${revision}</version>
                 <type>pom</type>
@@ -140,7 +140,7 @@
 
             <!-- common 的依赖配置-->
             <dependency>
-                <groupId>org.dromara</groupId>
+                <groupId>com.dzg</groupId>
                 <artifactId>ruoyi-common-bom</artifactId>
                 <version>${revision}</version>
                 <type>pom</type>
@@ -149,7 +149,7 @@
 
             <!-- api 的依赖配置-->
             <dependency>
-                <groupId>org.dromara</groupId>
+                <groupId>com.dzg</groupId>
                 <artifactId>ruoyi-api-bom</artifactId>
                 <version>${revision}</version>
                 <type>pom</type>
@@ -275,7 +275,7 @@
             </dependency>
 
             <dependency>
-                <groupId>org.dromara.easy-es</groupId>
+                <groupId>com.dzg.easy-es</groupId>
                 <artifactId>easy-es-boot-starter</artifactId>
                 <version>${easy-es.version}</version>
             </dependency>
@@ -325,7 +325,7 @@
 
             <!--短信sms4j-->
             <dependency>
-                <groupId>org.dromara.sms4j</groupId>
+                <groupId>com.dzg.sms4j</groupId>
                 <artifactId>sms4j-spring-boot-starter</artifactId>
                 <version>${sms4j.version}</version>
             </dependency>
@@ -365,12 +365,12 @@
 
             <!-- Warm-Flow国产工作流引擎, 在线文档：http://warm-flow.cn/ -->
             <dependency>
-                <groupId>org.dromara.warm</groupId>
+                <groupId>com.dzg.warm</groupId>
                 <artifactId>warm-flow-mybatis-plus-sb3-starter</artifactId>
                 <version>${warm-flow.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.dromara.warm</groupId>
+                <groupId>com.dzg.warm</groupId>
                 <artifactId>warm-flow-plugin-ui-sb-web</artifactId>
                 <version>${warm-flow.version}</version>
             </dependency>

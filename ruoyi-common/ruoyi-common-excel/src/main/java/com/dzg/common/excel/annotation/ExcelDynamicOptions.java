@@ -1,0 +1,22 @@
+package com.dzg.common.excel.annotation;
+
+import com.dzg.common.excel.core.ExcelOptionsProvider;
+
+import java.lang.annotation.*;
+
+/**
+ * Excel动态下拉选项注解
+ *
+ * @author Angus
+ */
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface ExcelDynamicOptions {
+
+    /**
+     * 提供者类全限定名
+     * 实现com.dzg.common.excel.service.ExcelOptionsProvider实现类接口
+     */
+    Class<? extends ExcelOptionsProvider> providerClass();
+}

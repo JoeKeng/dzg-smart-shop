@@ -92,7 +92,7 @@ spring:
           userpassword: 123456
     bus:
       id: ${spring.application.name}
-      base-packages: org.dromara.**.event
+      base-packages: com.dzg.**.event
   # 消息总线 也可以使用 kafka 参考 spring-cloud-bus 用法
   rabbitmq:
     host: localhost
@@ -185,12 +185,12 @@ sa-token:
 mybatis-plus:
   # 自定义配置 是否全局开启逻辑删除 关闭后 所有逻辑删除功能将失效
   enableLogicDelete: true
-  # 多包名使用 例如 org.dromara.**.mapper,org.xxx.**.mapper
-  mapperPackage: org.dromara.**.mapper
+  # 多包名使用 例如 com.dzg.**.mapper,org.xxx.**.mapper
+  mapperPackage: com.dzg.**.mapper
   # 对应的 XML 文件位置
   mapperLocations: classpath*:mapper/**/*Mapper.xml
   # 实体扫描，多个package用逗号或者分号分隔
-  typeAliasesPackage: org.dromara.**.domain
+  typeAliasesPackage: com.dzg.**.domain
   global-config:
     dbConfig:
       # 主键类型

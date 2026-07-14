@@ -1,4 +1,4 @@
-org.dromara.common.web.config.FilterConfig
-org.dromara.common.web.config.I18nConfig
-org.dromara.common.web.config.UndertowConfig
-org.dromara.common.web.config.ResourcesConfig
+com.dzg.common.web.config.FilterConfig
+com.dzg.common.web.config.I18nConfig
+com.dzg.common.web.config.UndertowConfig
+com.dzg.common.web.config.ResourcesConfig

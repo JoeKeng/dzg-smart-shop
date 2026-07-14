@@ -1,2 +1,2 @@
-org.dromara.common.core.service.impl.DictServiceImpl
-org.dromara.common.core.service.impl.PermissionServiceImpl
+com.dzg.common.core.service.impl.DictServiceImpl
+com.dzg.common.core.service.impl.PermissionServiceImpl

@@ -11,7 +11,7 @@ import org.apache.dubbo.metadata.MetadataInfo;
 import org.apache.dubbo.metadata.report.identifier.*;
 import org.apache.dubbo.metadata.report.support.AbstractMetadataReport;
 import org.apache.dubbo.rpc.RpcException;
-import org.dromara.common.core.utils.SpringUtils;
+import com.dzg.common.core.utils.SpringUtils;
 import org.redisson.api.RScript;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
