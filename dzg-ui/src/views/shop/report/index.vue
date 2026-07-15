@@ -42,14 +42,38 @@
       <p v-if="Number(data.unpaidTotal) > 0">还有 ￥{{ money(data.unpaidTotal) }} 赊账未还，建议去“赊账管理”登记还款。</p>
       <p v-else>当前没有未还赊账。</p>
     </section>
+
+    <section class="ai-panel">
+      <div class="ai-panel__head">
+        <div>
+          <h3>经营分析助手</h3>
+          <p>{{ aiAnalysis.summary || '刷新后会根据销售、库存和赊账生成经营建议。' }}</p>
+        </div>
+        <el-button class="action-button" icon="Refresh" :loading="aiLoading" @click="loadAiAnalysis">重新分析</el-button>
+      </div>
+      <div class="ai-grid">
+        <article v-for="item in aiAnalysis.insights" :key="`${item.type}-${item.title}`" class="ai-card">
+          <div class="ai-card__title">
+            <span>{{ item.title }}</span>
+            <el-tag :type="insightTagType(item.level)" effect="plain">{{ insightLevelText(item.level) }}</el-tag>
+          </div>
+          <p>{{ item.content }}</p>
+          <el-button v-if="item.actionPath" class="ai-card__action" link type="primary" icon="Position" @click="go(item.actionPath)">
+            {{ item.actionText || '查看' }}
+          </el-button>
+        </article>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup name="ShopReport" lang="ts">
-import { getShopReport } from '@/api/shop';
-import { ShopReport } from '@/api/shop/types';
+import { getShopAiAnalysis, getShopReport } from '@/api/shop';
+import { ShopAiAnalysis, ShopReport } from '@/api/shop/types';
 
+const router = useRouter();
 const loading = ref(false);
+const aiLoading = ref(false);
 const data = ref<ShopReport>({
   salesTotal: 0,
   orderCount: 0,
@@ -58,6 +82,7 @@ const data = ref<ShopReport>({
   grossProfit: 0,
   lowStockCount: 0
 });
+const aiAnalysis = ref<ShopAiAnalysis>({ summary: '', riskLevel: 'low', insights: [] });
 
 const money = (value?: number) => Number(value || 0).toFixed(2);
 
@@ -69,84 +94,38 @@ const loadReport = async () => {
   } finally {
     loading.value = false;
   }
+  await loadAiAnalysis();
+};
+
+const loadAiAnalysis = async () => {
+  aiLoading.value = true;
+  try {
+    const res = await getShopAiAnalysis();
+    aiAnalysis.value = res.data || { summary: '', riskLevel: 'low', insights: [] };
+  } finally {
+    aiLoading.value = false;
+  }
+};
+
+const go = (path?: string) => {
+  if (path) {
+    router.push(path);
+  }
+};
+
+const insightTagType = (level?: string) => {
+  if (level === 'danger') return 'danger';
+  if (level === 'warning') return 'warning';
+  if (level === 'success') return 'success';
+  return 'info';
+};
+
+const insightLevelText = (level?: string) => {
+  if (level === 'danger') return '风险';
+  if (level === 'warning') return '提醒';
+  if (level === 'success') return '正常';
+  return '建议';
 };
 
 onMounted(loadReport);
 </script>
-
-<style scoped>
-.shop-page {
-  padding: 16px;
-  background: #f5f7fb;
-  font-size: 16px;
-}
-.shop-title {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 28px;
-}
-.shop-title p {
-  margin: 6px 0 0;
-  color: #374151;
-  font-size: 17px;
-}
-.metric-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 14px;
-}
-.metric-card {
-  min-height: 124px;
-  padding: 18px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.metric-card span {
-  color: #374151;
-  font-size: 18px;
-}
-.metric-card strong {
-  color: #111827;
-  font-size: 34px;
-}
-.metric-card.primary strong,
-.metric-card.profit strong {
-  color: #0f766e;
-}
-.metric-card.warning strong {
-  color: #b45309;
-}
-.metric-card.danger strong {
-  color: #b91c1c;
-}
-.summary-section {
-  margin-top: 16px;
-  padding: 18px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
-}
-.summary-section h3 {
-  margin: 0 0 10px;
-  font-size: 22px;
-}
-.summary-section p {
-  margin: 8px 0;
-  color: #1f2937;
-  font-size: 17px;
-}
-.primary-action {
-  min-height: 44px;
-  font-size: 16px;
-}
-</style>

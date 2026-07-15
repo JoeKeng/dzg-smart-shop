@@ -46,7 +46,7 @@
         </el-table-column>
         <el-table-column label="操作" width="80">
           <template #default="{ $index }">
-            <el-button link type="danger" icon="Delete" @click="removeLine($index)" />
+            <el-button link type="danger" icon="Delete" aria-label="移除商品" title="移除商品" @click="removeLine($index)" />
           </template>
         </el-table-column>
       </el-table>
@@ -171,78 +171,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.shop-page {
-  padding: 16px;
-  font-size: 16px;
-}
-.shop-title {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 28px;
-}
-.shop-title p {
-  margin: 6px 0 0;
-  color: #374151;
-  font-size: 17px;
-}
 .purchase-panel,
 .history-section {
   padding: 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
 }
 .field-with-action {
-  display: flex;
   width: 100%;
-  gap: 10px;
-}
-.field-with-action .el-select {
-  flex: 1;
-}
-.history-section {
-  margin-top: 16px;
-}
-.history-section h3 {
-  margin: 0 0 12px;
-  font-size: 22px;
-}
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 16px 0 12px;
-}
-.total-row span {
-  font-size: 20px;
-}
-.total-row strong {
-  color: #0f766e;
-  font-size: 34px;
-}
-.primary-action,
-.finish-button,
-.action-button {
-  min-height: 48px;
-  font-size: 18px;
 }
 .finish-button {
   width: 100%;
-  min-height: 58px;
-}
-:deep(.el-table) {
-  font-size: 16px;
-}
-@media (max-width: 768px) {
-  .field-with-action {
-    align-items: stretch;
-    flex-direction: column;
-  }
+  min-height: 52px;
 }
 </style>

@@ -105,30 +105,8 @@ onMounted(loadCredits);
 </script>
 
 <style scoped>
-.shop-page {
-  padding: 16px;
-  font-size: 16px;
-}
-.shop-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 26px;
-}
-.primary-action,
-.action-button {
-  min-height: 44px;
-  font-size: 16px;
-}
 .danger {
-  color: #b91c1c;
+  color: #b42318;
   font-size: 18px;
-}
-:deep(.el-table) {
-  font-size: 16px;
 }
 </style>

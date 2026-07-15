@@ -113,43 +113,9 @@ onMounted(loadSuppliers);
 </script>
 
 <style scoped>
-.shop-page {
-  padding: 16px;
-  font-size: 16px;
-}
-.shop-title,
-.toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.shop-title {
-  justify-content: space-between;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 28px;
-}
-.shop-title p {
-  margin: 6px 0 0;
-  color: #374151;
-  font-size: 17px;
-}
-.toolbar .el-input {
-  max-width: 260px;
-}
-.primary-action,
-.action-button {
-  min-height: 44px;
-  font-size: 16px;
-}
 .count-text {
-  color: #0f766e;
-  font-size: 20px;
+  color: #087f73;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
-}
-:deep(.el-table) {
-  font-size: 16px;
 }
 </style>

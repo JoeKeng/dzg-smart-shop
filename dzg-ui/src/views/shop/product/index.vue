@@ -306,48 +306,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.shop-page {
-  padding: 16px;
-  color: #111827;
-  font-size: 16px;
-}
-
-.shop-title,
 .toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.shop-title {
-  justify-content: space-between;
-}
-
-.shop-title h2 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 28px;
-  text-wrap: balance;
-}
-
-.shop-title p {
-  margin: 6px 0 0;
-  color: #374151;
-  font-size: 17px;
-}
-
-.toolbar {
-  flex-wrap: wrap;
-  padding: 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.toolbar .el-input,
-.toolbar .el-select {
-  width: 240px;
+  margin-bottom: 14px;
 }
 
 .empty-alert {
@@ -355,16 +315,7 @@ onMounted(async () => {
 }
 
 .inline-action {
-  min-height: 40px;
   margin-top: 8px;
-  font-size: 16px;
-}
-
-.primary-action,
-.action-button,
-.small-action {
-  min-height: 44px;
-  font-size: 16px;
 }
 
 .small-action {
@@ -390,25 +341,19 @@ onMounted(async () => {
 
 .form-section {
   padding: 14px 14px 4px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d9e0e7;
   border-radius: 8px;
   background: #fff;
 }
 
 .form-section h3 {
   margin: 0 0 12px;
-  color: #1f2937;
-  font-size: 20px;
+  color: #172033;
+  font-size: 18px;
 }
 
 .field-with-action {
-  display: flex;
   width: 100%;
-  gap: 10px;
-}
-
-.field-with-action .el-select {
-  flex: 1;
 }
 
 .number-grid {
@@ -417,13 +362,9 @@ onMounted(async () => {
   column-gap: 12px;
 }
 
-:deep(.el-table) {
-  font-size: 16px;
-}
-
 :deep(.el-input__wrapper),
 :deep(.el-select__wrapper) {
-  min-height: 44px;
+  min-height: 40px;
 }
 
 :deep(.el-input-number) {
@@ -435,24 +376,12 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .shop-title {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .toolbar .el-input,
-  .toolbar .el-select,
   .primary-action {
     width: 100%;
   }
 
   .number-grid {
     grid-template-columns: 1fr;
-  }
-
-  .field-with-action {
-    align-items: stretch;
-    flex-direction: column;
   }
 }
 </style>

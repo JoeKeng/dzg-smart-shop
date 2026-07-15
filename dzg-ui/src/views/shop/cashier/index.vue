@@ -31,7 +31,7 @@
           </el-table-column>
           <el-table-column label="操作" width="80">
             <template #default="{ $index }">
-              <el-button link type="danger" icon="Delete" @click="cart.splice($index, 1)" />
+              <el-button link type="danger" icon="Delete" aria-label="移除商品" title="移除商品" @click="cart.splice($index, 1)" />
             </template>
           </el-table-column>
         </el-table>
@@ -132,23 +132,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.cashier-page {
-  padding: 16px;
-  font-size: 16px;
-}
 .cashier-header {
   display: grid;
   grid-template-columns: auto minmax(240px, 1fr) auto;
   gap: 12px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.cashier-header h2 {
-  margin: 0;
-  font-size: 28px;
 }
 .scan-input {
-  font-size: 18px;
+  min-width: 0;
 }
 .cashier-layout {
   display: grid;
@@ -157,15 +147,7 @@ onMounted(() => {
 }
 .product-panel,
 .cart-panel {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
   padding: 14px;
-}
-.product-panel h3,
-.cart-panel h3 {
-  margin: 0 0 12px;
-  font-size: 22px;
 }
 .product-grid {
   display: grid;
@@ -173,34 +155,31 @@ onMounted(() => {
   gap: 10px;
 }
 .product-button {
-  min-height: 82px;
-  border: 1px solid #9ca3af;
+  min-height: 76px;
+  border: 1px solid #c8d1dc;
   border-radius: 8px;
   background: #f9fafb;
-  color: #111827;
+  color: #172033;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-  font-size: 17px;
+  padding: 10px;
+  font-size: 15px;
+  text-align: left;
   cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.product-button:hover,
+.product-button:focus-visible {
+  border-color: #087f73;
+  box-shadow: 0 4px 10px rgba(8, 127, 115, 0.12);
+  outline: none;
+  transform: translateY(-1px);
 }
 .product-button strong {
-  color: #0f766e;
-  font-size: 20px;
-}
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 16px 0 12px;
-}
-.total-row span {
-  font-size: 20px;
-}
-.total-row strong {
-  font-size: 36px;
-  color: #b91c1c;
+  color: #087f73;
+  font-size: 18px;
 }
 .pay-type,
 .customer-select,
@@ -208,16 +187,8 @@ onMounted(() => {
   width: 100%;
   margin-top: 10px;
 }
-.action-button,
 .finish-button {
-  min-height: 48px;
-  font-size: 18px;
-}
-.finish-button {
-  min-height: 58px;
-}
-:deep(.el-table) {
-  font-size: 16px;
+  min-height: 52px;
 }
 @media (max-width: 900px) {
   .cashier-header,

@@ -125,3 +125,18 @@ export interface ShopNotification {
   bizId?: string | number;
   status?: string;
 }
+
+export interface ShopAiInsight {
+  type?: string;
+  title?: string;
+  content?: string;
+  level?: 'success' | 'info' | 'warning' | 'danger' | string;
+  actionText?: string;
+  actionPath?: string;
+}
+
+export interface ShopAiAnalysis {
+  summary?: string;
+  riskLevel?: 'low' | 'medium' | 'high' | string;
+  insights?: ShopAiInsight[];
+}

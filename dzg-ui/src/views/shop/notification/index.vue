@@ -11,15 +11,19 @@
     <el-empty v-if="!loading && notices.length === 0" description="当前没有需要处理的提醒" />
 
     <div v-else class="notice-list">
-      <div v-for="item in notices" :key="`${item.noticeType}-${item.bizType}-${item.bizId}`" class="notice-card" :class="item.noticeType">
+      <article v-for="(item, index) in notices" :key="`${item.noticeType}-${item.bizType}-${item.bizId}-${index}`" class="notice-card" :class="item.noticeType">
         <div>
           <strong>{{ item.noticeTitle }}</strong>
           <p>{{ item.noticeContent }}</p>
+          <div class="notice-card__actions">
+            <el-button link type="primary" icon="Position" @click="goNotice(item)">{{ actionText(item) }}</el-button>
+          </div>
         </div>
-        <el-tag :type="item.noticeType === 'stock' ? 'danger' : 'warning'" size="large">
-          {{ item.noticeType === 'stock' ? '库存' : '赊账' }}
-        </el-tag>
-      </div>
+        <div class="notice-card__meta">
+          <el-tag :type="noticeTagType(item.noticeType)" size="large">{{ noticeTypeText(item.noticeType) }}</el-tag>
+          <el-tag v-if="item.status === '0'" type="danger" effect="plain">未读</el-tag>
+        </div>
+      </article>
     </div>
   </div>
 </template>
@@ -28,75 +32,77 @@
 import { listNotification } from '@/api/shop';
 import { optionList } from '@/api/shop/response';
 import { ShopNotification } from '@/api/shop/types';
+import { useNoticeStore } from '@/store/modules/notice';
+import { ElNotification } from 'element-plus';
 
+const router = useRouter();
+const noticeStore = useNoticeStore();
 const loading = ref(false);
 const notices = ref<ShopNotification[]>([]);
+const notifiedKeys = new Set<string>();
 
 const loadNotices = async () => {
   loading.value = true;
   try {
     const res = await listNotification();
     notices.value = optionList<ShopNotification>(res);
+    noticeStore.state.notices = notices.value.map((item) => ({
+      title: item.noticeTitle,
+      message: item.noticeContent,
+      read: item.status !== '0',
+      time: noticeTypeText(item.noticeType)
+    }));
+    notifyUrgentMessages();
   } finally {
     loading.value = false;
   }
 };
 
+const noticeTagType = (type?: string) => {
+  if (type === 'stock') return 'danger';
+  if (type === 'suggestion') return 'success';
+  return 'warning';
+};
+
+const noticeTypeText = (type?: string) => {
+  if (type === 'stock') return '库存';
+  if (type === 'suggestion') return '建议';
+  return '赊账';
+};
+
+const actionText = (item: ShopNotification) => {
+  if (item.noticeType === 'stock') return '去补货';
+  if (item.noticeType === 'suggestion') return '看分析';
+  return '处理赊账';
+};
+
+const noticePath = (item: ShopNotification) => {
+  if (item.noticeType === 'stock') return '/shop/purchase';
+  if (item.noticeType === 'suggestion') return '/shop/report';
+  return '/shop/credit';
+};
+
+const goNotice = (item: ShopNotification) => {
+  router.push(noticePath(item));
+};
+
+const notifyUrgentMessages = () => {
+  notices.value
+    .filter((item) => item.noticeType === 'stock' || item.noticeType === 'credit')
+    .slice(0, 3)
+    .forEach((item) => {
+      const key = `${item.noticeType}-${item.bizType}-${item.bizId}`;
+      if (notifiedKeys.has(key)) return;
+      notifiedKeys.add(key);
+      ElNotification({
+        title: item.noticeTitle || '经营提醒',
+        message: item.noticeContent || '有新的店铺消息需要处理',
+        type: item.noticeType === 'stock' ? 'warning' : 'info',
+        duration: 4500,
+        position: 'bottom-right'
+      });
+    });
+};
+
 onMounted(loadNotices);
 </script>
-
-<style scoped>
-.shop-page {
-  padding: 16px;
-  background: #f5f7fb;
-  font-size: 16px;
-}
-.shop-title {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 28px;
-}
-.shop-title p {
-  margin: 6px 0 0;
-  color: #374151;
-  font-size: 17px;
-}
-.notice-list {
-  display: grid;
-  gap: 12px;
-}
-.notice-card {
-  min-height: 88px;
-  padding: 18px;
-  border: 1px solid #d1d5db;
-  border-left: 6px solid #b45309;
-  border-radius: 8px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.notice-card.stock {
-  border-left-color: #b91c1c;
-}
-.notice-card strong {
-  color: #111827;
-  font-size: 20px;
-}
-.notice-card p {
-  margin: 8px 0 0;
-  color: #1f2937;
-  font-size: 17px;
-}
-.primary-action {
-  min-height: 44px;
-  font-size: 16px;
-}
-</style>

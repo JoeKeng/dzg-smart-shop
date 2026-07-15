@@ -37,12 +37,34 @@
       <el-button icon="Box" @click="go('/shop/stock')">看库存</el-button>
       <el-button icon="Wallet" @click="go('/shop/credit')">查赊账</el-button>
     </div>
+
+    <section class="ai-panel">
+      <div class="ai-panel__head">
+        <div>
+          <h3>经营分析助手</h3>
+          <p>{{ aiAnalysis.summary || '正在根据店铺经营数据生成分析。' }}</p>
+        </div>
+        <el-tag :type="riskTagType" size="large">{{ riskText }}</el-tag>
+      </div>
+      <div class="ai-grid">
+        <article v-for="item in aiAnalysis.insights" :key="`${item.type}-${item.title}`" class="ai-card">
+          <div class="ai-card__title">
+            <span>{{ item.title }}</span>
+            <el-tag :type="insightTagType(item.level)" effect="plain">{{ insightLevelText(item.level) }}</el-tag>
+          </div>
+          <p>{{ item.content }}</p>
+          <el-button v-if="item.actionPath" class="ai-card__action" link type="primary" icon="Position" @click="go(item.actionPath)">
+            {{ item.actionText || '查看' }}
+          </el-button>
+        </article>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup name="ShopDashboard" lang="ts">
-import { getShopDashboard } from '@/api/shop';
-import { ShopDashboard } from '@/api/shop/types';
+import { getShopAiAnalysis, getShopDashboard } from '@/api/shop';
+import { ShopAiAnalysis, ShopDashboard } from '@/api/shop/types';
 
 const router = useRouter();
 const data = ref<ShopDashboard>({
@@ -52,75 +74,53 @@ const data = ref<ShopDashboard>({
   unpaidTotal: 0,
   lowStockCount: 0
 });
+const aiAnalysis = ref<ShopAiAnalysis>({
+  summary: '',
+  riskLevel: 'low',
+  insights: []
+});
 
 const money = (value?: number) => Number(value || 0).toFixed(2);
+const riskTagType = computed(() => {
+  if (aiAnalysis.value.riskLevel === 'high') return 'danger';
+  if (aiAnalysis.value.riskLevel === 'medium') return 'warning';
+  return 'success';
+});
+const riskText = computed(() => {
+  if (aiAnalysis.value.riskLevel === 'high') return '需要优先处理';
+  if (aiAnalysis.value.riskLevel === 'medium') return '需要关注';
+  return '经营平稳';
+});
 
 const loadData = async () => {
   const res = await getShopDashboard();
   data.value = res.data;
+  const aiRes = await getShopAiAnalysis();
+  aiAnalysis.value = aiRes.data || { summary: '', riskLevel: 'low', insights: [] };
 };
 
 const go = (path: string) => {
   router.push(path);
 };
 
+const insightTagType = (level?: string) => {
+  if (level === 'danger') return 'danger';
+  if (level === 'warning') return 'warning';
+  if (level === 'success') return 'success';
+  return 'info';
+};
+
+const insightLevelText = (level?: string) => {
+  if (level === 'danger') return '风险';
+  if (level === 'warning') return '提醒';
+  if (level === 'success') return '正常';
+  return '建议';
+};
+
 onMounted(loadData);
 </script>
 
 <style scoped>
-.shop-page {
-  padding: 16px;
-  font-size: 16px;
-}
-.shop-title {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 28px;
-  color: #1f2a37;
-}
-.shop-title p {
-  margin: 6px 0 0;
-  color: #4b5563;
-}
-.primary-action {
-  min-height: 44px;
-  font-size: 16px;
-}
-.metric-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
-}
-.metric-card {
-  min-height: 120px;
-  padding: 18px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.metric-card span {
-  color: #374151;
-  font-size: 17px;
-}
-.metric-card strong {
-  font-size: 34px;
-  color: #111827;
-}
-.metric-card.warn strong {
-  color: #b45309;
-}
-.metric-card.danger strong {
-  color: #b91c1c;
-}
 .quick-grid {
   margin-top: 16px;
   display: grid;
@@ -131,6 +131,6 @@ onMounted(loadData);
   width: 100%;
   min-height: 56px;
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
 }
 </style>

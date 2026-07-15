@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.dzg.shop.domain.ShopCreditRecord;
 import com.dzg.shop.domain.ShopNotification;
 import com.dzg.shop.domain.ShopStock;
+import com.dzg.shop.domain.vo.ShopAiAnalysisVo;
 import com.dzg.shop.mapper.ShopCreditRecordMapper;
 import com.dzg.shop.mapper.ShopNotificationMapper;
 import com.dzg.shop.mapper.ShopStockMapper;
@@ -20,6 +21,7 @@ public class ShopNotificationService {
     private final ShopStockMapper stockMapper;
     private final ShopCreditRecordMapper creditRecordMapper;
     private final ShopNotificationMapper notificationMapper;
+    private final ShopAiAnalysisService aiAnalysisService;
 
     public List<ShopNotification> listNotifications() {
         List<ShopNotification> notices = new ArrayList<>();
@@ -33,6 +35,10 @@ public class ShopNotificationService {
         }
         for (ShopCreditRecord credit : creditRecordMapper.selectList(Wrappers.<ShopCreditRecord>lambdaQuery().ne(ShopCreditRecord::getStatus, ShopConstants.SETTLED))) {
             notices.add(buildNotice("credit", "赊账未还", "有客户赊账尚未结清，请记得提醒还款", "credit", credit.getCreditId()));
+        }
+        ShopAiAnalysisVo analysis = aiAnalysisService.analysis();
+        if (analysis.getRiskLevel() != null && !"low".equals(analysis.getRiskLevel())) {
+            notices.add(buildNotice("suggestion", "经营建议", analysis.getSummary(), "report", 0L));
         }
         return notices;
     }

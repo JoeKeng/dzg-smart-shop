@@ -114,34 +114,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.shop-page {
-  padding: 16px;
-  font-size: 16px;
-}
-.shop-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 26px;
-}
-.primary-action,
-.action-button {
-  min-height: 44px;
-  font-size: 16px;
-}
 .section-title {
   margin: 20px 0 12px;
-  font-size: 22px;
+  color: #172033;
+  font-size: 18px;
 }
 .danger {
-  color: #b91c1c;
-  font-size: 20px;
-}
-:deep(.el-table) {
-  font-size: 16px;
+  color: #b42318;
+  font-size: 18px;
 }
 </style>

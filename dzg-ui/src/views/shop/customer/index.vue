@@ -115,36 +115,7 @@ onMounted(loadCustomers);
 </script>
 
 <style scoped>
-.shop-page {
-  padding: 16px;
-  font-size: 16px;
-}
-.shop-title,
-.toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.shop-title {
-  justify-content: space-between;
-}
-.shop-title h2 {
-  margin: 0;
-  font-size: 26px;
-}
-.toolbar .el-input {
-  max-width: 240px;
-}
-.primary-action,
-.action-button {
-  min-height: 44px;
-  font-size: 16px;
-}
 .danger {
-  color: #b91c1c;
-}
-:deep(.el-table) {
-  font-size: 16px;
+  color: #b42318;
 }
 </style>
