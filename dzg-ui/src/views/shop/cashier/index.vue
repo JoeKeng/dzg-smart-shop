@@ -43,6 +43,14 @@
 
         <el-segmented v-model="payType" class="pay-type" :options="payOptions" />
 
+        <div v-if="payQr" class="pay-code-card" aria-live="polite">
+          <div class="pay-code-copy">
+            <strong>{{ payQr.title }}</strong>
+            <span>{{ payQr.tip }}</span>
+          </div>
+          <img class="pay-code-image" :src="payQr.image" :alt="payQr.title" />
+        </div>
+
         <el-select v-if="payType === 'credit'" v-model="customerId" class="customer-select" filterable placeholder="选择赊账客户">
           <el-option v-for="item in customers" :key="item.customerId" :label="`${item.customerName} 欠￥${money(item.currentDebt)}`" :value="item.customerId" />
         </el-select>
@@ -59,6 +67,8 @@
 import { createCashierOrder, customerOptions, productOptions } from '@/api/shop';
 import { optionList } from '@/api/shop/response';
 import { ShopCustomer, ShopProduct } from '@/api/shop/types';
+import payAlipay from '@/assets/images/pay-alipay.jpg';
+import payWechat from '@/assets/images/pay-wechat.png';
 
 interface CartItem extends ShopProduct {
   quantity: number;
@@ -79,6 +89,23 @@ const payOptions = [
 ];
 
 const totalAmount = computed(() => cart.value.reduce((sum, item) => sum + Number(item.salePrice || 0) * item.quantity, 0));
+const payQr = computed(() => {
+  if (payType.value === 'wechat') {
+    return {
+      title: '微信收款码',
+      tip: '请顾客打开微信扫一扫付款，确认到账后完成收银。',
+      image: payWechat
+    };
+  }
+  if (payType.value === 'alipay') {
+    return {
+      title: '支付宝收款码',
+      tip: '请顾客打开支付宝扫一扫付款，确认到账后完成收银。',
+      image: payAlipay
+    };
+  }
+  return undefined;
+});
 const money = (value?: number) => Number(value || 0).toFixed(2);
 
 const loadProducts = async () => {
@@ -187,6 +214,41 @@ onMounted(() => {
   width: 100%;
   margin-top: 10px;
 }
+.pay-code-card {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--dzg-shop-primary) 28%, var(--dzg-shop-border));
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--dzg-shop-primary) 10%, transparent), transparent 54%),
+    color-mix(in srgb, var(--dzg-shop-surface) 92%, var(--dzg-shop-bg));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 136px;
+  align-items: center;
+  gap: 12px;
+}
+.pay-code-copy {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+.pay-code-copy strong {
+  color: var(--dzg-shop-text);
+  font-size: 16px;
+}
+.pay-code-copy span {
+  color: var(--dzg-shop-muted);
+  line-height: 1.6;
+}
+.pay-code-image {
+  width: 136px;
+  height: 136px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff;
+  object-fit: contain;
+  box-shadow: inset 0 0 0 1px rgba(97, 66, 32, 0.12), var(--dzg-shop-shadow);
+}
 .finish-button {
   min-height: 52px;
 }
@@ -194,6 +256,13 @@ onMounted(() => {
   .cashier-header,
   .cashier-layout {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .pay-code-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
   }
 }
 </style>
