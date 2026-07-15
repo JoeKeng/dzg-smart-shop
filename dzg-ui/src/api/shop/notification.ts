@@ -6,3 +6,17 @@ export const listNotification = () => {
     method: 'get'
   });
 };
+
+export const updateNotificationStatus = (noticeId: string | number, status: '0' | '1') => {
+  return request({
+    url: `/shop/notification/${noticeId}/status/${status}`,
+    method: 'put'
+  });
+};
+
+export const readAllNotification = () => {
+  return request({
+    url: '/shop/notification/read-all',
+    method: 'put'
+  });
+};

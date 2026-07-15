@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { reactive } from 'vue';
 
 interface NoticeItem {
+  id?: string | number;
   title?: string;
   read: boolean;
   message: any;

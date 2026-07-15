@@ -2,7 +2,7 @@
   <div v-loading="state.loading" class="layout-navbars-breadcrumb-user-news">
     <div class="head-box">
       <div class="head-box-title">通知公告</div>
-      <div class="head-box-btn" @click="readAll">全部已读</div>
+      <button class="head-box-btn" type="button" @click="handleReadAll">全部已读</button>
     </div>
     <div v-loading="state.loading" class="content-box">
       <template v-if="newsList.length > 0">
@@ -25,6 +25,7 @@
 
 <script setup lang="ts" name="layoutBreadcrumbUserNews">
 import { useNoticeStore } from '@/store/modules/notice';
+import { readAllNotification, updateNotificationStatus } from '@/api/shop';
 import router from '@/router';
 
 const noticeStore = useNoticeStore();
@@ -47,10 +48,19 @@ const getTableData = async () => {
 };
 
 //点击消息，写入已读
-const onNewsClick = (item: any) => {
+const onNewsClick = async (item: any) => {
   newsList.value[item].read = true;
+  if (newsList.value[item].id) {
+    await updateNotificationStatus(newsList.value[item].id, '1');
+  }
   //并且写入pinia
   noticeStore.state.notices = newsList.value;
+};
+
+const handleReadAll = async () => {
+  await readAllNotification();
+  readAll();
+  newsList.value = noticeStore.state.notices;
 };
 
 // 前往提醒中心
@@ -76,6 +86,8 @@ onMounted(() => {
     height: 35px;
     align-items: center;
     .head-box-btn {
+      border: 0;
+      background: transparent;
       color: var(--el-color-primary);
       font-size: 13px;
       cursor: pointer;

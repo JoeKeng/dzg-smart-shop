@@ -339,11 +339,14 @@ watch(
       .avatar-wrapper {
         margin-top: 0;
         position: relative;
+        display: flex;
+        align-items: center;
+        gap: 4px;
 
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
+          width: 34px;
+          height: 34px;
           border-radius: var(--app-radius-md);
           margin-top: 0;
           display: block;
@@ -351,9 +354,7 @@ watch(
 
         i {
           cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 25px;
+          position: static;
           font-size: 12px;
         }
       }

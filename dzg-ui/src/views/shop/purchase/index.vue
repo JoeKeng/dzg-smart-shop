@@ -23,33 +23,35 @@
         </el-form-item>
       </el-form>
 
-      <el-table border :data="form.items">
-        <el-table-column label="商品" min-width="220">
-          <template #default="{ row }">
-            <el-select v-model="row.productId" filterable placeholder="选择商品" @change="fillPrice(row)">
-              <el-option v-for="item in products" :key="item.productId" :label="item.productName" :value="item.productId" />
-            </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="数量" width="160">
-          <template #default="{ row }">
-            <el-input-number v-model="row.quantity" :min="1" :step="1" size="large" />
-          </template>
-        </el-table-column>
-        <el-table-column label="进价" width="180">
-          <template #default="{ row }">
-            <el-input-number v-model="row.purchasePrice" :min="0" :precision="2" :step="0.5" size="large" />
-          </template>
-        </el-table-column>
-        <el-table-column label="小计" width="130">
-          <template #default="{ row }">￥{{ money(Number(row.purchasePrice || 0) * Number(row.quantity || 0)) }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="80">
-          <template #default="{ $index }">
-            <el-button link type="danger" icon="Delete" aria-label="移除商品" title="移除商品" @click="removeLine($index)" />
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="table-scroll">
+        <el-table class="purchase-table" border :data="form.items">
+          <el-table-column label="商品" min-width="320">
+            <template #default="{ row }">
+              <el-select v-model="row.productId" filterable placeholder="选择商品" @change="fillPrice(row)">
+                <el-option v-for="item in products" :key="item.productId" :label="item.productName" :value="item.productId" />
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column label="数量" width="220">
+            <template #default="{ row }">
+              <el-input-number v-model="row.quantity" :min="1" :step="1" size="large" />
+            </template>
+          </el-table-column>
+          <el-table-column label="进价" width="240">
+            <template #default="{ row }">
+              <el-input-number v-model="row.purchasePrice" :min="0" :precision="2" :step="0.5" size="large" />
+            </template>
+          </el-table-column>
+          <el-table-column label="小计" width="130">
+            <template #default="{ row }">￥{{ money(Number(row.purchasePrice || 0) * Number(row.quantity || 0)) }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="80">
+            <template #default="{ $index }">
+              <el-button link type="danger" icon="Delete" aria-label="移除商品" title="移除商品" @click="removeLine($index)" />
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <div class="total-row">
         <span>本次入库金额</span>
@@ -177,6 +179,17 @@ onMounted(() => {
 }
 .field-with-action {
   width: 100%;
+}
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+.purchase-table {
+  min-width: 990px;
+}
+:deep(.purchase-table .el-input-number) {
+  width: 100%;
+  min-width: 168px;
 }
 .finish-button {
   width: 100%;
