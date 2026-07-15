@@ -179,11 +179,10 @@ const renderCharts = () => {
           center: ['50%', '42%'],
           avoidLabelOverlap: true,
           label: {
-            color: textColor,
-            formatter: hasIncome ? '{b}\n￥{c}' : '暂无数据'
+            show: false
           },
           labelLine: {
-            lineStyle: { color: borderColor }
+            show: false
           },
           itemStyle: {
             borderColor: surfaceColor,

@@ -151,9 +151,27 @@ const handleExceed = () => {
   proxy?.$modal.msgError(`上传文件数量不能超过 ${props.limit} 个!`);
 };
 
+const getUploadErrorMessage = (error: any, fallback: string) => {
+  const responseText = error?.response || error?.target?.response || error?.xhr?.responseText;
+  if (responseText) {
+    try {
+      const data = typeof responseText === 'string' ? JSON.parse(responseText) : responseText;
+      return data?.msg || data?.message || fallback;
+    } catch {
+      return responseText;
+    }
+  }
+  return error?.message || fallback;
+};
+
 // 上传失败
-const handleUploadError = () => {
-  proxy?.$modal.msgError('上传文件失败');
+const handleUploadError = (error: any) => {
+  number.value = Math.max(number.value - 1, 0);
+  if (number.value === 0) {
+    proxy?.$modal.closeLoading();
+  }
+  proxy?.$modal.msgError(getUploadErrorMessage(error, '上传文件失败，请检查 OSS 配置或稍后重试'));
+  uploadedSuccessfully();
 };
 
 // 上传成功回调

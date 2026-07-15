@@ -177,14 +177,15 @@ public class SysOssServiceImpl implements ISysOssService {
         String suffix = StringUtils.substring(originalfileName, originalfileName.lastIndexOf("."), originalfileName.length());
         OssClient storage = OssFactory.instance();
         UploadResult uploadResult;
+        String contentType = StringUtils.blankToDefault(file.getContentType(), FileUtils.getMimeType(suffix));
         try {
-            uploadResult = storage.uploadSuffix(file.getBytes(), suffix, file.getContentType());
-        } catch (IOException e) {
-            throw new ServiceException(e.getMessage());
+            uploadResult = storage.uploadSuffix(file.getInputStream(), suffix, file.getSize(), contentType);
+        } catch (Exception e) {
+            throw new ServiceException(StringUtils.blankToDefault(e.getMessage(), "OSS上传失败，请检查存储配置和网络连接"));
         }
         SysOssExt ext1 = new SysOssExt();
         ext1.setFileSize(file.getSize());
-        ext1.setContentType(file.getContentType());
+        ext1.setContentType(contentType);
         // 保存文件信息
         return buildResultEntity(originalfileName, suffix, storage.getConfigKey(), uploadResult, ext1);
     }
