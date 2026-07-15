@@ -166,6 +166,29 @@ export const uploadAvatar = (data: FormData) => {
 };
 
 /**
+ * 上传头像图片到 OSS
+ * @param data 头像文件
+ */
+export const uploadAvatarToOss = (data: FormData) => {
+  return request({
+    url: '/resource/oss/upload',
+    method: 'post',
+    data: data
+  });
+};
+
+/**
+ * 保存已上传 OSS 的头像
+ * @param ossId OSS 文件ID
+ */
+export const updateAvatarByOssId = (ossId: string | number) => {
+  return request({
+    url: '/system/user/profile/avatar/oss/' + ossId,
+    method: 'post'
+  });
+};
+
+/**
  * 查询授权角色
  * @param userId 用户ID
  */
@@ -222,6 +245,8 @@ export default {
   updateUserProfile,
   updateUserPwd,
   uploadAvatar,
+  uploadAvatarToOss,
+  updateAvatarByOssId,
   getAuthRole,
   updateAuthRole,
   deptTreeSelect,

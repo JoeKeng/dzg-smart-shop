@@ -137,6 +137,26 @@ public class SysProfileController extends BaseController {
     }
 
     /**
+     * 保存已上传 OSS 的头像
+     *
+     * @param ossId OSS 文件ID
+     */
+    @RepeatSubmit
+    @Log(title = "用户头像", businessType = BusinessType.UPDATE)
+    @PostMapping("/avatar/oss/{ossId}")
+    public R<AvatarVo> avatarByOss(@PathVariable Long ossId) {
+        String avatar = remoteFileService.selectUrlByIds(ossId.toString());
+        if (StringUtils.isBlank(avatar)) {
+            return R.fail("头像文件不存在，请重新上传");
+        }
+        boolean updateSuccess = DataPermissionHelper.ignore(() -> userService.updateUserAvatar(LoginHelper.getUserId(), ossId));
+        if (updateSuccess) {
+            return R.ok(new AvatarVo(avatar));
+        }
+        return R.fail("上传图片异常，请联系管理员");
+    }
+
+    /**
      * 用户头像信息
      *
      * @param imgUrl 头像地址

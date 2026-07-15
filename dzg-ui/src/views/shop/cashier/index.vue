@@ -67,8 +67,6 @@
 import { createCashierOrder, customerOptions, productOptions } from '@/api/shop';
 import { optionList } from '@/api/shop/response';
 import { ShopCustomer, ShopProduct } from '@/api/shop/types';
-import payAlipay from '@/assets/images/pay-alipay.jpg';
-import payWechat from '@/assets/images/pay-wechat.png';
 
 interface CartItem extends ShopProduct {
   quantity: number;
@@ -89,19 +87,23 @@ const payOptions = [
 ];
 
 const totalAmount = computed(() => cart.value.reduce((sum, item) => sum + Number(item.salePrice || 0) * item.quantity, 0));
+const payQrImages = {
+  alipay: 'https://ruoyi-yibin-hovoy.oss-cn-chengdu.aliyuncs.com/images/dzg-pay/pay-alipay-cashier.jpg',
+  wechat: 'https://ruoyi-yibin-hovoy.oss-cn-chengdu.aliyuncs.com/images/dzg-pay/pay-wechat-cashier.png'
+};
 const payQr = computed(() => {
   if (payType.value === 'wechat') {
     return {
       title: '微信收款码',
       tip: '请顾客打开微信扫一扫付款，确认到账后完成收银。',
-      image: payWechat
+      image: payQrImages.wechat
     };
   }
   if (payType.value === 'alipay') {
     return {
       title: '支付宝收款码',
       tip: '请顾客打开支付宝扫一扫付款，确认到账后完成收银。',
-      image: payAlipay
+      image: payQrImages.alipay
     };
   }
   return undefined;
@@ -223,7 +225,7 @@ onMounted(() => {
     linear-gradient(135deg, color-mix(in srgb, var(--dzg-shop-primary) 10%, transparent), transparent 54%),
     color-mix(in srgb, var(--dzg-shop-surface) 92%, var(--dzg-shop-bg));
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 136px;
+  grid-template-columns: minmax(0, 1fr) 196px;
   align-items: center;
   gap: 12px;
 }
@@ -241,8 +243,8 @@ onMounted(() => {
   line-height: 1.6;
 }
 .pay-code-image {
-  width: 136px;
-  height: 136px;
+  width: 196px;
+  height: 196px;
   padding: 8px;
   border-radius: 8px;
   background: #fff;

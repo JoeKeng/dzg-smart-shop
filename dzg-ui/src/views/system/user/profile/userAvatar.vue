@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import 'vue-cropper/dist/index.css';
 import { VueCropper } from 'vue-cropper';
-import { uploadAvatar } from '@/api/system/user';
+import { updateAvatarByOssId, uploadAvatarToOss } from '@/api/system/user';
 import { useUserStore } from '@/store/modules/user';
 import { UploadRawFile } from 'element-plus';
 
@@ -134,9 +134,11 @@ const beforeUpload = (file: UploadRawFile): any => {
 /** 上传图片 */
 const uploadImg = async () => {
   cropper.value.getCropBlob(async (data: any) => {
+    const fileName = options.fileName || 'avatar.png';
     const formData = new FormData();
-    formData.append('avatarfile', data, options.fileName);
-    const res = await uploadAvatar(formData);
+    formData.append('file', data, fileName);
+    const uploadRes = await uploadAvatarToOss(formData);
+    const res = await updateAvatarByOssId(uploadRes.data.ossId);
     open.value = false;
     options.img = res.data.imgUrl;
     userStore.setAvatar(options.img);

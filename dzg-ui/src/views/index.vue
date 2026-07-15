@@ -32,6 +32,23 @@
       </div>
     </section>
 
+    <section class="chart-grid" aria-label="经营可视化图表">
+      <article class="chart-panel">
+        <div class="chart-panel__head">
+          <h2>今日收款构成</h2>
+          <p>实收与赊账占比</p>
+        </div>
+        <div ref="incomeChartRef" class="chart-canvas" role="img" aria-label="今日收款构成图表"></div>
+      </article>
+      <article class="chart-panel">
+        <div class="chart-panel__head">
+          <h2>经营提醒概览</h2>
+          <p>订单、库存和赊账风险</p>
+        </div>
+        <div ref="todoChartRef" class="chart-canvas" role="img" aria-label="经营提醒概览图表"></div>
+      </article>
+    </section>
+
     <section class="quick-section">
       <el-button type="primary" icon="ShoppingCart" @click="go('/shop/cashier')">收银台</el-button>
       <el-button icon="Box" @click="go('/shop/purchase')">采购入库</el-button>
@@ -61,12 +78,18 @@
 </template>
 
 <script setup name="Index" lang="ts">
+import * as echarts from 'echarts';
 import { getShopDashboard } from '@/api/shop';
 import { ShopDashboard } from '@/api/shop/types';
 
 const router = useRouter();
 const loading = ref(false);
 const hasError = ref(false);
+const incomeChartRef = ref<HTMLElement>();
+const todoChartRef = ref<HTMLElement>();
+let incomeChart: echarts.ECharts | undefined;
+let todoChart: echarts.ECharts | undefined;
+let themeObserver: MutationObserver | undefined;
 const data = ref<ShopDashboard>({
   todaySales: 0,
   todayOrderCount: 0,
@@ -87,6 +110,8 @@ const loadData = async () => {
     hasError.value = true;
   } finally {
     loading.value = false;
+    await nextTick();
+    renderCharts();
   }
 };
 
@@ -94,7 +119,159 @@ const go = (path: string) => {
   router.push(path);
 };
 
-onMounted(loadData);
+const cssVar = (name: string, fallback: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+
+const renderCharts = () => {
+  if (!incomeChartRef.value || !todoChartRef.value) return;
+
+  incomeChart ??= echarts.init(incomeChartRef.value);
+  todoChart ??= echarts.init(todoChartRef.value);
+
+  const textColor = cssVar('--dzg-shop-text', '#243126');
+  const mutedColor = cssVar('--dzg-shop-muted', '#6d705f');
+  const borderColor = cssVar('--dzg-shop-border', '#dccfb8');
+  const primaryColor = cssVar('--dzg-shop-primary', '#3f7d58');
+  const goldColor = cssVar('--dzg-shop-gold', '#c79a3b');
+  const clayColor = cssVar('--dzg-shop-clay', '#a9543f');
+  const surfaceColor = cssVar('--dzg-shop-surface', '#fffaf0');
+
+  const todaySales = Number(data.value.todaySales || 0);
+  const todayCredit = Number(data.value.todayCredit || 0);
+  const paidAmount = Math.max(todaySales - todayCredit, 0);
+  const hasIncome = paidAmount + todayCredit > 0;
+  const incomeData = hasIncome
+    ? [
+        { name: '已收款', value: paidAmount },
+        { name: '赊账', value: todayCredit }
+      ]
+    : [{ name: '暂无收款', value: 1 }];
+
+  incomeChart.setOption(
+    {
+      backgroundColor: 'transparent',
+      color: hasIncome ? [primaryColor, goldColor] : [borderColor],
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => (hasIncome ? `${params.name}<br/>￥${money(params.value)} (${params.percent}%)` : '暂无收款数据')
+      },
+      legend: {
+        bottom: 0,
+        icon: 'roundRect',
+        textStyle: { color: mutedColor }
+      },
+      graphic: {
+        type: 'text',
+        left: 'center',
+        top: '38%',
+        style: {
+          text: hasIncome ? `￥${money(todaySales)}` : '暂无数据',
+          fill: textColor,
+          fontSize: hasIncome ? 20 : 16,
+          fontWeight: 700,
+          textAlign: 'center'
+        }
+      },
+      series: [
+        {
+          name: '收款构成',
+          type: 'pie',
+          radius: ['58%', '78%'],
+          center: ['50%', '42%'],
+          avoidLabelOverlap: true,
+          label: {
+            color: textColor,
+            formatter: hasIncome ? '{b}\n￥{c}' : '暂无数据'
+          },
+          labelLine: {
+            lineStyle: { color: borderColor }
+          },
+          itemStyle: {
+            borderColor: surfaceColor,
+            borderWidth: 3,
+            borderRadius: 6
+          },
+          data: incomeData
+        }
+      ]
+    },
+    true
+  );
+
+  const unpaidTotal = Number(data.value.unpaidTotal || 0);
+  const todoData = [
+    { name: '今日订单', value: Number(data.value.todayOrderCount || 0), amount: 0, itemStyle: { color: primaryColor } },
+    { name: '库存预警', value: Number(data.value.lowStockCount || 0), amount: 0, itemStyle: { color: clayColor } },
+    { name: '赊账风险', value: unpaidTotal > 0 ? 1 : 0, itemStyle: { color: goldColor }, amount: unpaidTotal }
+  ];
+
+  todoChart.setOption(
+    {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        formatter: (params: any) => {
+          const item = params?.[0];
+          if (!item) return '';
+          const raw = todoData[item.dataIndex];
+          return item.name === '赊账风险' ? `${item.name}<br/>未还 ￥${money(raw.amount)}` : `${item.name}<br/>${item.value}`;
+        }
+      },
+      grid: { left: 46, right: 16, top: 20, bottom: 42 },
+      xAxis: {
+        type: 'category',
+        data: todoData.map((item) => item.name),
+        axisTick: { show: false },
+        axisLine: { lineStyle: { color: borderColor } },
+        axisLabel: { color: mutedColor, interval: 0 }
+      },
+      yAxis: {
+        type: 'value',
+        minInterval: 1,
+        splitLine: { lineStyle: { color: borderColor, type: 'dashed' } },
+        axisLabel: { color: mutedColor }
+      },
+      series: [
+        {
+          name: '经营提醒',
+          type: 'bar',
+          barMaxWidth: 36,
+          data: todoData,
+          label: {
+            show: true,
+            position: 'top',
+            color: textColor,
+            fontWeight: 700,
+            formatter: (params: any) => (params.name === '赊账风险' ? (params.value > 0 ? '需关注' : '正常') : params.value)
+          },
+          itemStyle: {
+            borderRadius: [6, 6, 2, 2]
+          }
+        }
+      ]
+    },
+    true
+  );
+};
+
+const resizeCharts = () => {
+  incomeChart?.resize();
+  todoChart?.resize();
+};
+
+onMounted(() => {
+  window.addEventListener('resize', resizeCharts);
+  themeObserver = new MutationObserver(renderCharts);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  loadData();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', resizeCharts);
+  themeObserver?.disconnect();
+  incomeChart?.dispose();
+  todoChart?.dispose();
+});
 </script>
 
 <style scoped>
@@ -251,6 +428,52 @@ onMounted(loadData);
   text-shadow: 1px 1px 0 var(--dzg-shop-wood-dark);
 }
 
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.chart-panel {
+  min-width: 0;
+  padding: 16px;
+  border: 2px solid var(--dzg-shop-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--dzg-shop-gold-weak) 42%, transparent), transparent 56%),
+    var(--dzg-shop-surface);
+  box-shadow: var(--dzg-shop-shadow);
+}
+
+.chart-panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.chart-panel__head h2 {
+  margin: 0;
+  color: var(--dzg-shop-text);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.chart-panel__head p {
+  margin: 0;
+  color: var(--dzg-shop-muted);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chart-canvas {
+  width: 100%;
+  height: 270px;
+}
+
 .status-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -296,6 +519,21 @@ onMounted(loadData);
 
   .home-header__farm {
     display: none;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .chart-panel__head {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .chart-panel__head p {
+    white-space: normal;
   }
 }
 </style>
