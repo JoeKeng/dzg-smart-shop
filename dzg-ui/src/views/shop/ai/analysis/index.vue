@@ -39,31 +39,37 @@
       </main>
 
       <aside class="question-panel">
-        <div class="question-head">
-          <h3>经营分析问答</h3>
-          <el-tag type="warning" effect="plain">专精经营</el-tag>
-        </div>
-        <div ref="messageBoxRef" class="question-messages">
-          <article v-for="item in messages" :key="item.id" class="question-message" :class="item.role">
-            <span>{{ item.role === 'user' ? '我问' : 'AI答' }}</span>
-            <p>{{ item.content }}</p>
-          </article>
-        </div>
-        <div class="suggestions">
-          <button v-for="item in suggestions" :key="item" @click="askSuggestion(item)">
-            {{ item }}
-          </button>
-        </div>
-        <div class="question-composer">
-          <el-input
-            v-model="input"
-            type="textarea"
-            :rows="3"
-            resize="none"
-            placeholder="例如：未来三个月应该怎么规划采购？"
-            @keydown.ctrl.enter.prevent="sendQuestion"
-          />
-          <el-button type="primary" icon="Promotion" :loading="asking" @click="sendQuestion">询问分析</el-button>
+        <div class="question-card">
+          <div class="question-head">
+            <h3>经营分析问答</h3>
+            <el-tag type="warning" effect="plain">专精经营</el-tag>
+          </div>
+          <div ref="messageBoxRef" class="question-messages">
+            <article v-for="item in messages" :key="item.id" class="question-message" :class="item.role">
+              <span>{{ item.role === 'user' ? '我问' : 'AI答' }}</span>
+              <p>{{ item.content }}</p>
+            </article>
+            <div v-if="messages.length === 0" class="question-empty">
+              <strong>还没有提问</strong>
+              <span>可以直接输入经营问题，或点击下方建议快速开始。</span>
+            </div>
+          </div>
+          <div class="suggestions">
+            <button v-for="item in visibleSuggestions" :key="item" @click="askSuggestion(item)">
+              {{ item }}
+            </button>
+          </div>
+          <div class="question-composer">
+            <el-input
+              v-model="input"
+              type="textarea"
+              :rows="3"
+              resize="none"
+              placeholder="例如：未来三个月应该怎么规划采购？"
+              @keydown.ctrl.enter.prevent="sendQuestion"
+            />
+            <el-button type="primary" icon="Promotion" :loading="asking" @click="sendQuestion">询问分析</el-button>
+          </div>
         </div>
       </aside>
     </div>
@@ -87,6 +93,7 @@ const input = ref('');
 const messageBoxRef = ref<HTMLElement>();
 const messages = ref<QuestionMessage[]>([]);
 const suggestions = ref<string[]>([]);
+const visibleSuggestions = computed(() => suggestions.value.slice(0, 3));
 const analysis = ref<ShopAiBusinessAnalysis>({
   summary: '',
   riskLevel: 'low',
@@ -163,6 +170,7 @@ onMounted(() => loadAnalysis());
 
 <style scoped>
 .business-ai-page {
+  min-width: 0;
   min-height: calc(100vh - 84px);
   padding: 16px;
   background: #f6f4ef;
@@ -177,6 +185,10 @@ onMounted(() => loadAnalysis());
   border: 1px solid #d9ded4;
   border-radius: 8px;
   background: #ffffff;
+}
+
+.analysis-hero > div {
+  min-width: 0;
 }
 
 .analysis-hero h2,
@@ -241,17 +253,20 @@ onMounted(() => loadAnalysis());
 
 .analysis-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  align-items: start;
+  gap: 16px;
   margin-top: 14px;
 }
 
 .report-panel {
+  min-width: 0;
   display: grid;
   gap: 12px;
 }
 
 .report-section {
+  min-width: 0;
   padding: 18px;
   border: 1px solid #d9ded4;
   border-left: 5px solid #2f6f51;
@@ -284,16 +299,23 @@ onMounted(() => loadAnalysis());
 
 .question-panel {
   position: sticky;
-  top: 64px;
+  top: 72px;
   align-self: start;
-  max-height: calc(100vh - 84px);
-  padding: 14px;
+  width: 100%;
+  min-width: 0;
+  max-height: calc(100dvh - 96px);
+  z-index: 1;
+}
+
+.question-card {
+  max-height: inherit;
+  padding: 16px;
   border: 1px solid #d9ded4;
   border-radius: 8px;
   background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(150px, auto) auto auto;
+  overflow: auto;
 }
 
 .question-head {
@@ -301,14 +323,14 @@ onMounted(() => loadAnalysis());
 }
 
 .question-messages {
-  max-height: none;
   min-height: 120px;
+  max-height: 240px;
   overflow-y: auto;
   display: grid;
+  align-content: start;
   gap: 10px;
   margin-top: 14px;
   padding-right: 4px;
-  flex: 1;
 }
 
 .question-message {
@@ -327,19 +349,44 @@ onMounted(() => loadAnalysis());
   white-space: pre-wrap;
 }
 
+.question-empty {
+  min-height: 110px;
+  border: 1px dashed #e3d5ae;
+  border-radius: 8px;
+  background: #fffdf9;
+  color: #6a756e;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.question-empty strong {
+  color: #22312a;
+  font-size: 16px;
+}
+
+.question-empty span {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .suggestions {
   display: grid;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 6px;
+  margin-top: 12px;
 }
 
 .suggestions button {
   width: 100%;
   border: 1px solid #e3d5ae;
   border-radius: 8px;
-  padding: 10px;
+  padding: 8px 10px;
   background: #fff8e8;
   color: #493817;
+  line-height: 1.5;
+  white-space: normal;
   text-align: left;
   cursor: pointer;
 }
@@ -348,25 +395,6 @@ onMounted(() => loadAnalysis());
   display: grid;
   gap: 10px;
   margin-top: 14px;
-}
-
-@media (min-width: 1281px) {
-  .business-ai-page {
-    padding-right: 392px;
-  }
-
-  .analysis-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .question-panel {
-    position: fixed;
-    top: 84px;
-    right: 24px;
-    z-index: 10;
-    width: 360px;
-    max-height: calc(100vh - 108px);
-  }
 }
 
 @media (max-width: 1280px) {
@@ -380,6 +408,11 @@ onMounted(() => loadAnalysis());
 
   .question-panel {
     position: static;
+    max-height: none;
+  }
+
+  .question-card {
+    max-height: none;
   }
 }
 

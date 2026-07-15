@@ -1,16 +1,18 @@
 import request from '@/utils/request';
 
-export const getShopAiAnalysis = () => {
+export const getShopAiAnalysis = (force = false) => {
   return request({
     url: '/shop/ai/analysis',
-    method: 'get'
+    method: 'get',
+    params: { force }
   });
 };
 
-export const getShopAiBusinessAnalysis = () => {
+export const getShopAiBusinessAnalysis = (force = false) => {
   return request({
     url: '/shop/ai/business-analysis',
-    method: 'get'
+    method: 'get',
+    params: { force }
   });
 };
 

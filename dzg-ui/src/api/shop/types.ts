@@ -26,6 +26,7 @@ export interface ShopProduct {
   supplierNames?: string;
   status?: string;
   remark?: string;
+  stockQuantity?: number;
 }
 
 export interface ShopStock {
@@ -77,6 +78,17 @@ export interface ShopDashboard {
   todayCredit: number;
   unpaidTotal: number;
   lowStockCount: number;
+}
+
+export interface ShopPaymentSummary {
+  range: 'today' | 'week' | 'month' | 'all' | string;
+  orderCount: number;
+  paidAmount: number;
+  creditAmount: number;
+  repaidCreditAmount?: number;
+  unpaidAmount?: number;
+  collectedAmount?: number;
+  totalAmount: number;
 }
 
 export interface ShopSupplier {

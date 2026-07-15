@@ -11,15 +11,21 @@ let pendingRequest: Promise<BusinessAnalysisResponse> | undefined;
 const hasFreshCache = () => Boolean(cachedResponse && Date.now() - cachedAt < CACHE_TTL);
 
 export const getCachedShopAiBusinessAnalysis = (force = false) => {
+  if (force) {
+    cachedResponse = undefined;
+    cachedAt = 0;
+    pendingRequest = undefined;
+  }
+
   if (!force && hasFreshCache()) {
     return Promise.resolve(cachedResponse as BusinessAnalysisResponse);
   }
 
-  if (pendingRequest) {
+  if (!force && pendingRequest) {
     return pendingRequest;
   }
 
-  pendingRequest = getShopAiBusinessAnalysis()
+  pendingRequest = getShopAiBusinessAnalysis(force)
     .then((res) => {
       cachedResponse = res;
       cachedAt = Date.now();
