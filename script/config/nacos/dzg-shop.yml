@@ -5,6 +5,7 @@ spring:
     dynamic:
       # 店铺经营服务默认数据源使用 dzg_shop；框架菜单和权限仍在 dzg_cloud。
       primary: master
+      seata: false
       datasource:
         master:
           type: ${spring.datasource.type}
@@ -18,3 +19,11 @@ spring:
 
 shop:
   tenant-id: "000000"
+  ai:
+    enabled: true
+    provider: deepseek
+    base-url: https://api.deepseek.com
+    api-key: ${deepseek.api-key:}
+    model: deepseek-v4-flash
+    timeout-seconds: 8
+    cache-seconds: 300

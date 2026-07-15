@@ -103,6 +103,7 @@ dzg_cloud.sys_menu
 
 ```text
 script/sql/update/dzg-shop-extend-menu.sql
+script/sql/update/dzg-shop-ai-module.sql
 script/sql/update/dzg-shop-fix-product-supplier.sql
 script/sql/update/dzg-shop-demo-data.sql
 ```
@@ -112,6 +113,7 @@ script/sql/update/dzg-shop-demo-data.sql
 - 创建或补齐店铺业务表
 - 新增 `image_oss_id`
 - 新增 `dzg_product_supplier`
+- 新增 AI 对话表和 AI 助手一级菜单
 - 插入常用商品分类
 - 补齐店铺经营菜单
 - 隐藏重复的店铺首页看板
@@ -142,7 +144,65 @@ ImageUpload
 /resource/oss/upload
 ```
 
-## 6. Nacos 与服务启动
+## 6. DeepSeek 经营分析
+
+经营分析接口保持不变：
+
+```text
+GET /shop/ai/analysis
+```
+
+当前实现为“本地经营指标 + DeepSeek 生成建议 + 本地兜底”。经营分析最多返回 6 条具体建议，覆盖今日优先事项、库存补货、热销商品、赊账跟进、采购建议和报表复盘。没有配置 DeepSeek API Key、DeepSeek 超时或返回异常时，接口仍返回本地规则分析，不影响首页看板、经营报表和提醒中心展示。
+
+AI 功能当前有三类入口：
+
+- 经营报表和首页看板里的“经营分析助手”：保留原有轻量经营分析。
+- 一级菜单“AI助手 / AI对话”：支持新建对话、历史对话、推荐提问、文本聊天和浏览器语音输入；DeepSeek 正常返回时会优先展示 AI 生成的后续推荐问题。
+- 一级菜单“AI助手 / AI经营分析”：生成详细经营报告，覆盖短期动作、采购库存、赊账现金流和 3-12 个月长期规划；页面内问答使用专精经营分析 prompt，不回答无关闲聊。
+
+AI 对话接口：
+
+```text
+GET  /shop/ai/conversation/list
+POST /shop/ai/conversation
+GET  /shop/ai/conversation/{conversationId}/messages
+GET  /shop/ai/suggestions
+POST /shop/ai/chat
+```
+
+AI 经营分析接口：
+
+```text
+GET  /shop/ai/business-analysis
+POST /shop/ai/business-analysis/chat
+```
+
+AI 对话持久化表：
+
+```text
+dzg_ai_conversation
+dzg_ai_message
+```
+
+语音输入使用浏览器 Web Speech API。Chrome 可用性较好；如果浏览器不支持，页面会禁用语音按钮，但文本聊天不受影响。
+
+Nacos `dzg-shop.yml` 使用占位配置：
+
+```yaml
+shop:
+  ai:
+    enabled: true
+    provider: deepseek
+    base-url: https://api.deepseek.com
+    api-key: ${deepseek.api-key:}
+    model: deepseek-v4-flash
+    timeout-seconds: 8
+    cache-seconds: 300
+```
+
+真实 DeepSeek API Key 不允许写入 Git。开发或服务器联调时，把真实值放到 Nacos 变量、服务环境变量或本机未提交配置中。
+
+## 7. Nacos 与服务启动
 
 最小联调服务：
 
@@ -174,7 +234,7 @@ Resource
 Shop
 ```
 
-## 7. 提交规范
+## 8. 提交规范
 
 从下一阶段开始按模块小步提交，不再把多个模块混在一个提交里。
 
@@ -196,7 +256,7 @@ feat: 完善经营报表和提醒中心
 - 提交前先跑密钥扫描。
 - 推送使用普通 `git push origin master`，不强推。
 
-## 8. 验证清单
+## 9. 验证清单
 
 前端：
 
@@ -214,7 +274,7 @@ mvn "-Dmaven.repo.local=D:/Code/shixun/RuoYi-Cloud-Plus/.m2/repository" -pl dzg-
 密钥扫描：
 
 ```powershell
-rg -n "Syh511322|dzg123|AccessKeyId|OSSAccessKeyId|ssh连接|8\.137\.169\.2" --glob "!**/target/**" --glob "!**/dist/**" --glob "!**/node_modules/**"
+rg -n "sk-[A-Za-z0-9]|Syh511322|dzg123|AccessKeyId|OSSAccessKeyId|ssh连接|8\.137\.169\.2" --glob "!**/target/**" --glob "!**/dist/**" --glob "!**/node_modules/**"
 ```
 
 数据库验证：
@@ -234,14 +294,21 @@ where status = '0' and del_flag = '0'
 order by sort_order;
 ```
 
-## 9. 已知问题
+DeepSeek 分析验证：
+
+```text
+未配置 deepseek.api-key：/shop/ai/analysis 返回 generatedByAi=false，页面显示“本地分析”。
+配置有效 deepseek.api-key：/shop/ai/analysis 返回 generatedByAi=true，页面显示“DeepSeek分析”。
+```
+
+## 10. 已知问题
 
 - 命令行 Maven 在 Windows 环境可能出现 `An unknown compilation problem occurred / 无法关闭编译器资源`，且没有源码行。当前按环境问题记录。
 - 文档和配置中不能写真实服务器密码，测试阶段明文只允许放在 Nacos 控制台或本机未提交配置。
 - 菜单来自数据库，前端页面新增后仍需要确认 `sys_menu` 和角色权限。
 - 多人同时运行 `dzg-shop` 并注册到同一个 Nacos namespace/group 时，Gateway 会负载均衡到不同实例，可能出现接口偶发 500、字段不一致、供应商关联不显示等问题。联调前先确认 Nacos 中目标服务只有一个有效实例。
 
-## 10. 下一步建议
+## 11. 下一步建议
 
 优先按以下顺序继续：
 
