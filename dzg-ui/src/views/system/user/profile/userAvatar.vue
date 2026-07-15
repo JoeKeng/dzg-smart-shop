@@ -58,7 +58,7 @@
 <script setup lang="ts">
 import 'vue-cropper/dist/index.css';
 import { VueCropper } from 'vue-cropper';
-import { updateAvatarByOssId, uploadAvatarToOss } from '@/api/system/user';
+import { uploadAvatar } from '@/api/system/user';
 import { useUserStore } from '@/store/modules/user';
 import { UploadRawFile } from 'element-plus';
 
@@ -136,11 +136,9 @@ const beforeUpload = (file: UploadRawFile): any => {
 const uploadImg = async () => {
   cropper.value.getCropBlob(async (data: any) => {
     try {
-      const fileName = options.fileName || 'avatar.png';
       const formData = new FormData();
-      formData.append('file', data, fileName);
-      const uploadRes = await uploadAvatarToOss(formData);
-      const res = await updateAvatarByOssId(uploadRes.data.ossId);
+      formData.append('avatarfile', data, 'avatar.png');
+      const res = await uploadAvatar(formData);
       open.value = false;
       options.img = res.data?.imgUrl || options.img;
       userStore.setAvatar(options.img);
@@ -148,8 +146,8 @@ const uploadImg = async () => {
       options.img = userStore.avatar;
       proxy?.$modal.msgSuccess('修改成功');
       visible.value = false;
-    } catch {
-      proxy?.$modal.msgError('头像上传失败，请检查 OSS 上传权限和图片格式');
+    } catch (error: any) {
+      proxy?.$modal.msgError(error?.message || '头像上传失败，请检查图片格式');
     }
   });
 };

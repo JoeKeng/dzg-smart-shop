@@ -199,7 +199,7 @@ const getList = async () => {
   showTable.value = true;
 };
 function checkFileSuffix(fileSuffix: string | string[]) {
-  const arr = ['.png', '.jpg', '.jpeg'];
+  const arr = ['.png', '.jpg', '.jpeg', '.svg'];
   const suffixArray = Array.isArray(fileSuffix) ? fileSuffix : [fileSuffix];
   return suffixArray.some((suffix) => arr.includes(suffix.toLowerCase()));
 }
