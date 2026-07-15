@@ -82,9 +82,15 @@
 </template>
 
 <script setup name="Index" lang="ts">
-import * as echarts from 'echarts';
+import * as echarts from 'echarts/core';
+import { BarChart, PieChart } from 'echarts/charts';
+import { GraphicComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
 import { getShopDashboard } from '@/api/shop';
+import { preloadShopAiBusinessAnalysis } from '@/api/shop/ai-cache';
 import { ShopDashboard } from '@/api/shop/types';
+
+echarts.use([BarChart, PieChart, GraphicComponent, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer]);
 
 const router = useRouter();
 const loading = ref(false);
@@ -277,11 +283,24 @@ const resizeCharts = () => {
   todoChart?.resize();
 };
 
+const preloadAiAnalysis = () => {
+  void preloadShopAiBusinessAnalysis();
+};
+
+const scheduleAiPreload = () => {
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(preloadAiAnalysis, { timeout: 1500 });
+    return;
+  }
+  window.setTimeout(preloadAiAnalysis, 800);
+};
+
 onMounted(() => {
   window.addEventListener('resize', resizeCharts);
   themeObserver = new MutationObserver(renderCharts);
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   loadData();
+  scheduleAiPreload();
 });
 
 onBeforeUnmount(() => {

@@ -138,5 +138,68 @@ export interface ShopAiInsight {
 export interface ShopAiAnalysis {
   summary?: string;
   riskLevel?: 'low' | 'medium' | 'high' | string;
+  provider?: string;
+  model?: string;
+  generatedByAi?: boolean;
+  fallbackReason?: string;
+  analysisTime?: string;
   insights?: ShopAiInsight[];
+}
+
+export interface ShopAiBusinessMetric {
+  label?: string;
+  value?: string;
+  hint?: string;
+}
+
+export interface ShopAiBusinessSection {
+  title?: string;
+  horizon?: string;
+  level?: 'success' | 'info' | 'warning' | 'danger' | string;
+  content?: string;
+  actions?: string[];
+}
+
+export interface ShopAiBusinessAnalysis {
+  summary?: string;
+  riskLevel?: 'low' | 'medium' | 'high' | string;
+  provider?: string;
+  model?: string;
+  generatedByAi?: boolean;
+  fallbackReason?: string;
+  analysisTime?: string;
+  metrics?: ShopAiBusinessMetric[];
+  sections?: ShopAiBusinessSection[];
+  suggestions?: string[];
+}
+
+export interface ShopAiBusinessQuestionResult {
+  answer?: string;
+  generatedByAi?: boolean;
+  fallbackReason?: string;
+  suggestions?: string[];
+}
+
+export interface ShopAiConversation {
+  conversationId?: string | number;
+  title?: string;
+  status?: string;
+  createTime?: string;
+  updateTime?: string;
+}
+
+export interface ShopAiMessage {
+  messageId?: string | number;
+  conversationId?: string | number;
+  role?: 'user' | 'assistant' | string;
+  content?: string;
+  createTime?: string;
+}
+
+export interface ShopAiChatResult {
+  conversation?: ShopAiConversation;
+  reply?: ShopAiMessage;
+  generatedByAi?: boolean;
+  fallbackReason?: string;
+  suggestions?: string[];
 }
