@@ -13,19 +13,38 @@
           <el-switch v-model="productQuery.sortBySales" active-text="销量优先" @change="reloadProducts" />
         </div>
         <div v-loading="productLoading" class="product-grid">
-          <button v-for="item in products" :key="item.productId" type="button" class="product-button" @click="addToCart(item)">
+          <button
+            v-for="item in products"
+            :key="item.productId"
+            type="button"
+            class="product-button"
+            :class="{ disabled: stockLimit(item) <= 0 }"
+            :disabled="stockLimit(item) <= 0"
+            @click="addToCart(item)"
+          >
             <span class="product-thumb">
               <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.productName" />
               <span v-else>无图</span>
             </span>
             <span class="product-info">
               <span>{{ item.productName }}</span>
-              <small>{{ item.barcode || '无条码' }} · 已售 {{ item.saleCount || 0 }}</small>
+              <small>{{ item.barcode || '无条码' }} · 库存 {{ stockLimit(item) }} · 已售 {{ item.saleCount || 0 }}</small>
               <strong>￥{{ money(item.salePrice) }}</strong>
             </span>
           </button>
         </div>
-        <pagination v-show="productTotal > 0" v-model:page="productQuery.pageNum" v-model:limit="productQuery.pageSize" :total="productTotal" @pagination="loadProducts" />
+        <div class="cashier-pagination">
+          <pagination
+            v-show="productTotal > 0"
+            v-model:page="productQuery.pageNum"
+            v-model:limit="productQuery.pageSize"
+            :total="productTotal"
+            :pager-count="5"
+            layout="total, sizes, prev, pager, next"
+            float="left"
+            @pagination="loadProducts"
+          />
+        </div>
       </section>
 
       <section class="cart-panel">
@@ -34,7 +53,7 @@
           <el-table-column label="商品" prop="productName" min-width="130" />
           <el-table-column label="数量" width="140">
             <template #default="{ row }">
-              <el-input-number v-model="row.quantity" :min="1" :step="1" size="large" />
+              <el-input-number v-model="row.quantity" :min="1" :max="stockLimit(row)" :step="1" size="large" @change="normalizeCartQuantity(row)" />
             </template>
           </el-table-column>
           <el-table-column label="小计" width="110">
@@ -124,6 +143,7 @@ const payQr = computed(() => {
   return undefined;
 });
 const money = (value?: number) => Number(value || 0).toFixed(2);
+const stockLimit = (item: Pick<ShopProduct, 'stockQuantity'>) => Number(item.stockQuantity || 0);
 
 const loadProducts = async () => {
   productLoading.value = true;
@@ -176,17 +196,42 @@ const reloadProducts = () => {
 };
 
 const addToCart = (product: ShopProduct) => {
+  const limit = stockLimit(product);
+  if (limit <= 0) {
+    proxy?.$modal.msgWarning('库存不足，不能加入购物清单');
+    return;
+  }
   const exists = cart.value.find((item) => item.productId === product.productId);
   if (exists) {
+    if (exists.quantity >= limit) {
+      proxy?.$modal.msgWarning(`库存只有 ${limit} 件，不能继续增加`);
+      return;
+    }
     exists.quantity += 1;
     return;
   }
   cart.value.push({ ...product, quantity: 1 });
 };
 
+const normalizeCartQuantity = (row: CartItem) => {
+  const limit = stockLimit(row);
+  if (row.quantity > limit) {
+    row.quantity = limit;
+    proxy?.$modal.msgWarning(`库存只有 ${limit} 件，已自动调整数量`);
+  }
+  if (row.quantity < 1) {
+    row.quantity = 1;
+  }
+};
+
 const finishOrder = async () => {
   if (payType.value === 'credit' && !customerId.value) {
     proxy?.$modal.msgWarning('赊账要先选择客户');
+    return;
+  }
+  const overStockItem = cart.value.find((item) => item.quantity > stockLimit(item));
+  if (overStockItem) {
+    proxy?.$modal.msgWarning(`${overStockItem.productName} 库存只有 ${stockLimit(overStockItem)} 件，不能超卖`);
     return;
   }
   await createCashierOrder({
@@ -219,9 +264,11 @@ onMounted(() => {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) minmax(420px, 0.9fr);
   gap: 14px;
+  min-width: 0;
 }
 .product-panel,
 .cart-panel {
+  min-width: 0;
   padding: 14px;
 }
 .product-panel__head {
@@ -239,6 +286,27 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
   min-height: 220px;
+}
+.cashier-pagination {
+  margin-top: 12px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 4px;
+}
+.cashier-pagination :deep(.pagination-container) {
+  display: flex;
+  min-width: 0;
+}
+.cashier-pagination :deep(.el-pagination) {
+  float: none;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px 6px;
+  white-space: normal;
+}
+.cashier-pagination :deep(.el-pagination__sizes) {
+  margin-left: 0;
 }
 .product-button {
   min-height: 94px;
@@ -261,6 +329,15 @@ onMounted(() => {
   box-shadow: 0 0 0 3px var(--dzg-shop-focus), var(--dzg-shop-shadow);
   outline: none;
   transform: translateY(-1px);
+}
+.product-button.disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+.product-button.disabled:hover {
+  border-color: var(--dzg-shop-border);
+  box-shadow: none;
+  transform: none;
 }
 .product-button strong {
   color: var(--dzg-shop-primary);

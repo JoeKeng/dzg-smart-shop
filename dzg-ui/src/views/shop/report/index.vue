@@ -3,26 +3,33 @@
     <div class="shop-title">
       <div>
         <h2>经营报表</h2>
-        <p>用最少数字看清店里赚没赚、欠款多不多。</p>
+        <p>{{ selectedReportRangeLabel }}经营数据，当前欠款和库存预警单独展示。</p>
       </div>
-      <el-button class="primary-action" icon="Refresh" :loading="loading || aiLoading" @click="refreshReport">刷新</el-button>
+      <div class="report-actions">
+        <el-radio-group v-model="reportRange" class="report-range" size="small" @change="refreshReport(false)">
+          <el-radio-button v-for="item in reportRangeOptions" :key="item.value" :label="item.value">
+            {{ item.label }}
+          </el-radio-button>
+        </el-radio-group>
+        <el-button class="primary-action" icon="Refresh" :loading="loading || aiLoading" @click="refreshReport(true)">刷新</el-button>
+      </div>
     </div>
 
     <section class="metric-grid">
       <div class="metric-card primary">
-        <span>销售总额</span>
+        <span>{{ selectedReportRangeLabel }}销售额</span>
         <strong>￥{{ money(data.salesTotal) }}</strong>
       </div>
       <div class="metric-card">
-        <span>订单总数</span>
+        <span>{{ selectedReportRangeLabel }}订单数</span>
         <strong>{{ data.orderCount }}</strong>
       </div>
       <div class="metric-card profit">
-        <span>粗略毛利</span>
+        <span>{{ selectedReportRangeLabel }}粗略毛利</span>
         <strong>￥{{ money(data.grossProfit) }}</strong>
       </div>
       <div class="metric-card warning">
-        <span>赊账总额</span>
+        <span>{{ selectedReportRangeLabel }}赊账额</span>
         <strong>￥{{ money(data.creditTotal) }}</strong>
       </div>
       <div class="metric-card danger">
@@ -51,7 +58,7 @@
         </div>
         <div class="ai-panel__actions">
           <el-tag :type="sourceTagType" size="large">{{ sourceText }}</el-tag>
-          <el-button class="action-button" icon="Refresh" :loading="aiLoading" @click="loadAiAnalysis">重新分析</el-button>
+          <el-button class="action-button" icon="Refresh" :loading="aiLoading" @click="loadAiAnalysis(true)">重新分析</el-button>
         </div>
       </div>
       <div class="ai-grid">
@@ -77,6 +84,13 @@ import { ShopAiAnalysis, ShopReport } from '@/api/shop/types';
 const router = useRouter();
 const loading = ref(false);
 const aiLoading = ref(false);
+const reportRangeOptions = [
+  { label: '今日', value: 'today' },
+  { label: '近7天', value: 'week' },
+  { label: '本月', value: 'month' },
+  { label: '全部', value: 'all' }
+];
+const reportRange = ref('today');
 const data = ref<ShopReport>({
   salesTotal: 0,
   orderCount: 0,
@@ -88,21 +102,22 @@ const data = ref<ShopReport>({
 const aiAnalysis = ref<ShopAiAnalysis>({ summary: '', riskLevel: 'low', insights: [] });
 
 const money = (value?: number) => Number(value || 0).toFixed(2);
+const selectedReportRangeLabel = computed(() => reportRangeOptions.find((item) => item.value === reportRange.value)?.label || '今日');
 
 const loadReport = async () => {
   loading.value = true;
   try {
-    const res = await getShopReport();
+    const res = await getShopReport(reportRange.value);
     data.value = res.data;
   } finally {
     loading.value = false;
   }
 };
 
-const loadAiAnalysis = async () => {
+const loadAiAnalysis = async (force = false) => {
   aiLoading.value = true;
   try {
-    const res = await getShopAiAnalysis();
+    const res = await getShopAiAnalysis(force);
     aiAnalysis.value = res.data || { summary: '', riskLevel: 'low', insights: [] };
   } finally {
     aiLoading.value = false;
@@ -115,8 +130,8 @@ const go = (path?: string) => {
   }
 };
 
-const refreshReport = async () => {
-  await Promise.all([loadReport(), loadAiAnalysis()]);
+const refreshReport = async (forceAi = false) => {
+  await Promise.all([loadReport(), loadAiAnalysis(forceAi)]);
 };
 
 const insightTagType = (level?: string) => {
@@ -144,5 +159,49 @@ onMounted(refreshReport);
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.report-range :deep(.el-radio-button__inner) {
+  min-height: 34px;
+  padding: 8px 13px;
+  border-color: var(--dzg-shop-border);
+  background: color-mix(in srgb, var(--dzg-shop-surface) 86%, var(--dzg-shop-gold-weak));
+  color: var(--dzg-shop-text);
+  font-weight: 800;
+}
+
+.report-range :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  border-color: var(--dzg-shop-wood-dark);
+  background: linear-gradient(180deg, #d88a34, var(--dzg-shop-wood));
+  color: #fff6d7;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .report-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .report-range {
+    width: 100%;
+  }
+
+  .report-range :deep(.el-radio-button) {
+    width: 25%;
+  }
+
+  .report-range :deep(.el-radio-button__inner) {
+    width: 100%;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
 }
 </style>

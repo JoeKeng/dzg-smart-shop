@@ -1,8 +1,9 @@
 import request from '@/utils/request';
 
-export const getShopReport = () => {
+export const getShopReport = (range = 'today') => {
   return request({
     url: '/shop/report/summary',
-    method: 'get'
+    method: 'get',
+    params: { range }
   });
 };

@@ -8,42 +8,52 @@
       <el-button class="primary-action" type="primary" icon="Plus" @click="dialogVisible = true">库存调整</el-button>
     </div>
 
-    <el-table v-loading="loading" border :data="stocks" row-key="stockId">
-      <el-table-column label="商品" min-width="180">
-        <template #default="{ row }">
-          <span class="name-cell">{{ row.productName || '未命名商品' }}</span>
-          <small>ID {{ row.productId }}</small>
-        </template>
-      </el-table-column>
-      <el-table-column label="当前库存" prop="quantity" min-width="160">
-        <template #default="{ row }">
-          <strong :class="{ danger: row.quantity <= row.warningQty }">{{ row.quantity }}</strong>
-        </template>
-      </el-table-column>
-      <el-table-column label="预警值" prop="warningQty" width="120" />
-      <el-table-column label="状态" width="140">
-        <template #default="{ row }">
-          <el-tag v-if="row.quantity <= row.warningQty" type="danger" size="large">需要补货</el-tag>
-          <el-tag v-else type="success" size="large">正常</el-tag>
-        </template>
-      </el-table-column>
-    </el-table>
-    <pagination v-show="total > 0" v-model:page="query.pageNum" v-model:limit="query.pageSize" :total="total" @pagination="loadStocks" />
+    <div class="stock-view-switch">
+      <el-segmented v-model="activeView" :options="viewOptions" />
+    </div>
 
-    <h3 class="section-title">库存流水</h3>
-    <el-table border :data="logs">
-      <el-table-column label="商品" min-width="180">
-        <template #default="{ row }">
-          <span class="name-cell">{{ row.productName || '未命名商品' }}</span>
-          <small>ID {{ row.productId }}</small>
-        </template>
-      </el-table-column>
-      <el-table-column label="类型" prop="changeType" width="110" />
-      <el-table-column label="变化数量" prop="changeQty" width="120" />
-      <el-table-column label="变动前" prop="beforeQty" width="120" />
-      <el-table-column label="变动后" prop="afterQty" width="120" />
-      <el-table-column label="备注" prop="remark" min-width="180" />
-    </el-table>
+    <div class="stock-view-panel">
+      <template v-if="activeView === 'stock'">
+        <el-table v-loading="loading" border :data="stocks" row-key="stockId">
+          <el-table-column label="商品" min-width="180">
+            <template #default="{ row }">
+              <span class="name-cell">{{ row.productName || '未命名商品' }}</span>
+              <small>ID {{ row.productId }}</small>
+            </template>
+          </el-table-column>
+          <el-table-column label="当前库存" prop="quantity" min-width="160">
+            <template #default="{ row }">
+              <strong :class="{ danger: row.quantity <= row.warningQty }">{{ row.quantity }}</strong>
+            </template>
+          </el-table-column>
+          <el-table-column label="预警值" prop="warningQty" width="120" />
+          <el-table-column label="状态" width="140">
+            <template #default="{ row }">
+              <el-tag v-if="row.quantity <= row.warningQty" type="danger" size="large">需要补货</el-tag>
+              <el-tag v-else type="success" size="large">正常</el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+        <pagination v-show="total > 0" v-model:page="query.pageNum" v-model:limit="query.pageSize" :total="total" @pagination="loadStocks" />
+      </template>
+
+      <template v-else>
+        <el-table v-loading="logLoading" border :data="logs">
+          <el-table-column label="商品" min-width="180">
+            <template #default="{ row }">
+              <span class="name-cell">{{ row.productName || '未命名商品' }}</span>
+              <small>ID {{ row.productId }}</small>
+            </template>
+          </el-table-column>
+          <el-table-column label="类型" prop="changeType" width="110" />
+          <el-table-column label="变化数量" prop="changeQty" width="120" />
+          <el-table-column label="变动前" prop="beforeQty" width="120" />
+          <el-table-column label="变动后" prop="afterQty" width="120" />
+          <el-table-column label="备注" prop="remark" min-width="180" />
+        </el-table>
+        <pagination v-show="logTotal > 0" v-model:page="logQuery.pageNum" v-model:limit="logQuery.pageSize" :total="logTotal" @pagination="loadLogs" />
+      </template>
+    </div>
 
     <el-dialog v-model="dialogVisible" title="库存调整" width="520px">
       <el-form :model="form" label-width="96px">
@@ -77,13 +87,21 @@ import { ShopProduct, ShopStock } from '@/api/shop/types';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const loading = ref(false);
+const logLoading = ref(false);
 const stocks = ref<ShopStock[]>([]);
 const logs = ref<any[]>([]);
 const products = ref<ShopProduct[]>([]);
 const total = ref(0);
+const logTotal = ref(0);
 const dialogVisible = ref(false);
+const activeView = ref<'stock' | 'log'>('stock');
 const query = reactive({ pageNum: 1, pageSize: 10 });
+const logQuery = reactive({ pageNum: 1, pageSize: 10 });
 const form = reactive({ productId: undefined as string | number | undefined, changeType: 'in', quantity: 1, remark: '' });
+const viewOptions = [
+  { label: '库存列表', value: 'stock' },
+  { label: '库存流水', value: 'log' }
+];
 const typeOptions = [
   { label: '增加库存', value: 'in' },
   { label: '减少库存', value: 'out' }
@@ -98,8 +116,14 @@ const loadStocks = async () => {
 };
 
 const loadLogs = async () => {
-  const res = await listStockLog({ pageNum: 1, pageSize: 8 });
-  logs.value = res.rows;
+  logLoading.value = true;
+  try {
+    const res = await listStockLog(logQuery);
+    logs.value = res.rows;
+    logTotal.value = res.total;
+  } finally {
+    logLoading.value = false;
+  }
 };
 
 const loadProducts = async () => {
@@ -127,11 +151,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.section-title {
-  margin: 20px 0 12px;
-  color: var(--dzg-shop-text);
-  font-size: 18px;
+.stock-view-switch {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: flex-start;
 }
+
+.stock-view-panel {
+  min-width: 0;
+}
+
 .danger {
   color: var(--dzg-shop-clay);
   font-size: 18px;

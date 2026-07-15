@@ -11,20 +11,23 @@
 
     <section class="metric-grid">
       <div class="metric-panel primary">
-        <span>今日营业额</span>
+        <span>今日实收</span>
         <strong>￥{{ money(data.todaySales) }}</strong>
+        <small>不含赊账销售</small>
       </div>
       <div class="metric-panel">
         <span>今日订单数</span>
         <strong>{{ data.todayOrderCount }}</strong>
       </div>
       <div class="metric-panel warning">
-        <span>今日赊账</span>
+        <span>今日新增赊账</span>
         <strong>￥{{ money(data.todayCredit) }}</strong>
+        <small>按今天赊账订单统计</small>
       </div>
       <div class="metric-panel danger">
-        <span>未还总额</span>
+        <span>未还余额</span>
         <strong>￥{{ money(data.unpaidTotal) }}</strong>
+        <small>所有未结清欠款余额</small>
       </div>
       <div class="metric-panel">
         <span>库存预警</span>
@@ -34,15 +37,18 @@
 
     <section class="chart-grid" aria-label="经营可视化图表">
       <article class="chart-panel">
-        <div class="chart-panel__head">
-          <h2>今日收款构成</h2>
-          <p>实收与赊账占比</p>
+        <div class="chart-panel__head chart-panel__head--stacked">
+          <div>
+            <h2>{{ selectedPaymentRangeLabel }}已收与未还</h2>
+            <p>按订单时间统计，赊账扣除已还款</p>
+          </div>
+          <el-radio-group v-model="paymentRange" class="chart-range" size="small" @change="loadPaymentSummary">
+            <el-radio-button v-for="item in paymentRangeOptions" :key="item.value" :label="item.value">
+              {{ item.label }}
+            </el-radio-button>
+          </el-radio-group>
         </div>
-        <div ref="incomeChartRef" class="chart-canvas" role="img" aria-label="今日收款构成图表"></div>
-        <div class="income-summary" aria-label="今日收款明细">
-          <span>实收 ￥{{ money(data.todaySales) }}</span>
-          <span>赊账 ￥{{ money(data.todayCredit) }}</span>
-        </div>
+        <div ref="incomeChartRef" class="chart-canvas" role="img" :aria-label="`${selectedPaymentRangeLabel}已收与未还图表`"></div>
       </article>
       <article class="chart-panel">
         <div class="chart-panel__head">
@@ -67,7 +73,7 @@
         <h2>今日重点</h2>
         <p v-if="data.lowStockCount > 0">有 {{ data.lowStockCount }} 个商品库存偏低。</p>
         <p v-else>当前没有库存预警。</p>
-        <p v-if="Number(data.unpaidTotal) > 0">未还赊账合计 ￥{{ money(data.unpaidTotal) }}。</p>
+        <p v-if="Number(data.unpaidTotal) > 0">未还赊账余额合计 ￥{{ money(data.unpaidTotal) }}。</p>
         <p v-else>当前没有未还赊账。</p>
       </div>
       <div class="status-block">
@@ -86,9 +92,9 @@ import * as echarts from 'echarts/core';
 import { BarChart, PieChart } from 'echarts/charts';
 import { GraphicComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
-import { getShopDashboard } from '@/api/shop';
+import { getShopDashboard, getShopPaymentSummary } from '@/api/shop';
 import { preloadShopAiBusinessAnalysis } from '@/api/shop/ai-cache';
-import { ShopDashboard } from '@/api/shop/types';
+import { ShopDashboard, ShopPaymentSummary } from '@/api/shop/types';
 
 echarts.use([BarChart, PieChart, GraphicComponent, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer]);
 
@@ -107,19 +113,51 @@ const data = ref<ShopDashboard>({
   unpaidTotal: 0,
   lowStockCount: 0
 });
+const paymentRangeOptions = [
+  { label: '今日', value: 'today' },
+  { label: '近7天', value: 'week' },
+  { label: '本月', value: 'month' },
+  { label: '全部', value: 'all' }
+];
+const paymentRange = ref('today');
+const paymentSummary = ref<ShopPaymentSummary>({
+  range: 'today',
+  orderCount: 0,
+  paidAmount: 0,
+  creditAmount: 0,
+  repaidCreditAmount: 0,
+  unpaidAmount: 0,
+  collectedAmount: 0,
+  totalAmount: 0
+});
 
 const money = (value?: number) => Number(value || 0).toFixed(2);
+const selectedPaymentRangeLabel = computed(() => paymentRangeOptions.find((item) => item.value === paymentRange.value)?.label || '今日');
 
 const loadData = async () => {
   loading.value = true;
   hasError.value = false;
   try {
-    const res = await getShopDashboard();
-    data.value = res.data;
+    const [dashboardRes, paymentRes] = await Promise.all([getShopDashboard(), getShopPaymentSummary(paymentRange.value)]);
+    data.value = dashboardRes.data;
+    paymentSummary.value = paymentRes.data || paymentSummary.value;
   } catch {
     hasError.value = true;
   } finally {
     loading.value = false;
+    await nextTick();
+    renderCharts();
+  }
+};
+
+const loadPaymentSummary = async () => {
+  hasError.value = false;
+  try {
+    const res = await getShopPaymentSummary(paymentRange.value);
+    paymentSummary.value = res.data || paymentSummary.value;
+  } catch {
+    hasError.value = true;
+  } finally {
     await nextTick();
     renderCharts();
   }
@@ -145,25 +183,35 @@ const renderCharts = () => {
   const clayColor = cssVar('--dzg-shop-clay', '#a9543f');
   const surfaceColor = cssVar('--dzg-shop-surface', '#fffaf0');
 
-  const todaySales = Number(data.value.todaySales || 0);
-  const todayCredit = Number(data.value.todayCredit || 0);
-  const incomeTotal = todaySales + todayCredit;
+  const paidAmount = Number(paymentSummary.value.paidAmount || 0);
+  const creditAmount = Number(paymentSummary.value.creditAmount || 0);
+  const repaidCreditAmount = Number(paymentSummary.value.repaidCreditAmount || 0);
+  const collectedAmount = Number(paymentSummary.value.collectedAmount ?? paidAmount + repaidCreditAmount);
+  const fallbackUnpaidAmount = paymentRange.value === 'all' ? Number(data.value.unpaidTotal || 0) : Math.max(creditAmount - repaidCreditAmount, 0);
+  const unpaidAmount = Number(paymentSummary.value.unpaidAmount ?? fallbackUnpaidAmount);
+  const incomeTotal = collectedAmount + unpaidAmount;
   const hasIncome = incomeTotal > 0;
   const incomeData = hasIncome
     ? [
-        { name: '已收款', value: todaySales },
-        { name: '赊账', value: todayCredit }
+        { name: '已收款', value: collectedAmount },
+        { name: '未还余额', value: unpaidAmount }
       ]
     : [{ name: '暂无收款', value: 1 }];
 
   incomeChart.setOption(
     {
       backgroundColor: 'transparent',
-      color: hasIncome ? [primaryColor, goldColor] : [borderColor],
+      color: hasIncome ? [primaryColor, clayColor] : [borderColor],
       tooltip: {
         trigger: 'item',
         confine: true,
-        formatter: (params: any) => (hasIncome ? `${params.name}<br/>￥${money(params.value)} (${params.percent}%)` : '暂无收款数据')
+        formatter: (params: any) => {
+          if (!hasIncome) {
+            return '暂无实收与赊账数据';
+          }
+          const note = params.name === '已收款' && repaidCreditAmount > 0 ? `<br/>含赊账已还 ￥${money(repaidCreditAmount)}` : '';
+          return `${params.name}<br/>￥${money(params.value)} (${params.percent}%)${note}`;
+        }
       },
       legend: {
         bottom: 0,
@@ -198,7 +246,7 @@ const renderCharts = () => {
       ],
       series: [
         {
-          name: '收款构成',
+          name: `${selectedPaymentRangeLabel.value}已收与未还`,
           type: 'pie',
           radius: [50, 74],
           center: ['50%', '49%'],
@@ -433,6 +481,13 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 
+.metric-panel small {
+  color: var(--dzg-shop-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
 .metric-panel.primary strong {
   color: var(--dzg-shop-primary);
 }
@@ -491,6 +546,10 @@ onBeforeUnmount(() => {
   margin-bottom: 8px;
 }
 
+.chart-panel__head--stacked {
+  align-items: flex-start;
+}
+
 .chart-panel__head h2 {
   margin: 0;
   color: var(--dzg-shop-text);
@@ -506,31 +565,29 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+.chart-range {
+  flex: 0 0 auto;
+}
+
+.chart-range :deep(.el-radio-button__inner) {
+  min-height: 32px;
+  padding: 7px 12px;
+  border-color: var(--dzg-shop-border);
+  background: color-mix(in srgb, var(--dzg-shop-surface) 86%, var(--dzg-shop-gold-weak));
+  color: var(--dzg-shop-text);
+  font-weight: 800;
+}
+
+.chart-range :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  border-color: var(--dzg-shop-wood-dark);
+  background: linear-gradient(180deg, #d88a34, var(--dzg-shop-wood));
+  color: #fff6d7;
+  box-shadow: none;
+}
+
 .chart-canvas {
   width: 100%;
   height: 220px;
-}
-
-.income-summary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: -8px;
-}
-
-.income-summary span {
-  min-width: 0;
-  padding: 8px 10px;
-  border: 1px solid var(--dzg-shop-border);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--dzg-shop-bg-soft) 76%, transparent);
-  color: var(--dzg-shop-text);
-  font-size: 14px;
-  font-weight: 800;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .status-section {
@@ -595,8 +652,18 @@ onBeforeUnmount(() => {
     white-space: normal;
   }
 
-  .income-summary {
-    grid-template-columns: 1fr;
+  .chart-range {
+    width: 100%;
+  }
+
+  .chart-range :deep(.el-radio-button) {
+    width: 25%;
+  }
+
+  .chart-range :deep(.el-radio-button__inner) {
+    width: 100%;
+    padding-right: 4px;
+    padding-left: 4px;
   }
 }
 </style>
