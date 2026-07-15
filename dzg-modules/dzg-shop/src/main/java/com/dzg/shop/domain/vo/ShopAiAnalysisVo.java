@@ -2,6 +2,7 @@ package com.dzg.shop.domain.vo;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,16 @@ public class ShopAiAnalysisVo {
     private String summary;
 
     private String riskLevel;
+
+    private String provider;
+
+    private String model;
+
+    private Boolean generatedByAi = false;
+
+    private String fallbackReason;
+
+    private LocalDateTime analysisTime;
 
     private List<Insight> insights = new ArrayList<>();
 

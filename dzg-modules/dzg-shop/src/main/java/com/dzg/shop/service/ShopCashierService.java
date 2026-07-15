@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -45,11 +47,15 @@ public class ShopCashierService {
         }
 
         BigDecimal total = BigDecimal.ZERO;
+        Map<Long, Integer> requestQtyMap = new HashMap<>();
         for (ShopOrderItemBo item : bo.getItems()) {
             ShopProduct product = productService.requireProduct(item.getProductId());
             int qty = safeQty(item.getQuantity());
             total = total.add(product.getSalePrice().multiply(BigDecimal.valueOf(qty)));
-            stockService.requireEnoughStock(product.getProductId(), qty);
+            requestQtyMap.merge(product.getProductId(), qty, Integer::sum);
+        }
+        for (Map.Entry<Long, Integer> entry : requestQtyMap.entrySet()) {
+            stockService.requireEnoughStock(entry.getKey(), entry.getValue());
         }
 
         ShopOrder order = new ShopOrder();

@@ -13,6 +13,7 @@ import com.dzg.shop.domain.ShopCategory;
 import com.dzg.shop.domain.ShopOrderItem;
 import com.dzg.shop.domain.ShopProduct;
 import com.dzg.shop.domain.ShopProductSupplier;
+import com.dzg.shop.domain.ShopStock;
 import com.dzg.shop.domain.ShopSupplier;
 import com.dzg.shop.mapper.ShopCategoryMapper;
 import com.dzg.shop.mapper.ShopOrderItemMapper;
@@ -20,6 +21,7 @@ import com.dzg.shop.mapper.ShopProductMapper;
 import com.dzg.shop.mapper.ShopProductSupplierMapper;
 import com.dzg.shop.mapper.ShopSupplierMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,9 +35,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @RequiredArgsConstructor
 @Service
 public class ShopProductService {
+
 
     private final ShopCategoryMapper categoryMapper;
     private final ShopProductMapper productMapper;
@@ -135,21 +139,19 @@ public class ShopProductService {
     }
 
     private LambdaQueryWrapper<ShopProduct> productWrapper(ShopProduct query) {
-        if (query == null) {
-            query = new ShopProduct();
-        }
+        final ShopProduct q = (query == null) ? new ShopProduct() : query;
         LambdaQueryWrapper<ShopProduct> lqw = Wrappers.lambdaQuery();
-        lqw.and(StringUtils.isNotBlank(query.getKeyword()), wrapper -> wrapper
-            .like(ShopProduct::getProductName, query.getKeyword())
+        lqw.and(StringUtils.isNotBlank(q.getKeyword()), wrapper -> wrapper
+            .like(ShopProduct::getProductName, q.getKeyword())
             .or()
-            .like(ShopProduct::getBarcode, query.getKeyword()));
-        lqw.like(StringUtils.isNotBlank(query.getProductName()), ShopProduct::getProductName, query.getProductName());
-        lqw.eq(query.getCategoryId() != null, ShopProduct::getCategoryId, query.getCategoryId());
-        lqw.like(StringUtils.isNotBlank(query.getBarcode()), ShopProduct::getBarcode, query.getBarcode());
-        lqw.eq(StringUtils.isNotBlank(query.getStatus()), ShopProduct::getStatus, query.getStatus());
-        if (query.getSupplierId() != null) {
+            .like(ShopProduct::getBarcode, q.getKeyword()));
+        lqw.like(StringUtils.isNotBlank(q.getProductName()), ShopProduct::getProductName, q.getProductName());
+        lqw.eq(q.getCategoryId() != null, ShopProduct::getCategoryId, q.getCategoryId());
+        lqw.like(StringUtils.isNotBlank(q.getBarcode()), ShopProduct::getBarcode, q.getBarcode());
+        lqw.eq(StringUtils.isNotBlank(q.getStatus()), ShopProduct::getStatus, q.getStatus());
+        if (q.getSupplierId() != null) {
             List<Long> productIds = productSupplierMapper.selectList(Wrappers.<ShopProductSupplier>lambdaQuery()
-                    .eq(ShopProductSupplier::getSupplierId, query.getSupplierId())
+                    .eq(ShopProductSupplier::getSupplierId, q.getSupplierId())
                     .and(wrapper -> wrapper.eq(ShopProductSupplier::getStatus, ShopConstants.NORMAL)
                         .or()
                         .isNull(ShopProductSupplier::getStatus))
@@ -167,7 +169,7 @@ public class ShopProductService {
                 lqw.in(ShopProduct::getProductId, productIds);
             }
         }
-        if (Boolean.TRUE.equals(query.getSortBySales())) {
+        if (Boolean.TRUE.equals(q.getSortBySales())) {
             lqw.last("order by (select coalesce(sum(oi.quantity), 0) from dzg_order_item oi where oi.product_id = dzg_product.product_id and (oi.del_flag = '0' or oi.del_flag is null)) desc, create_time desc");
         } else {
             lqw.orderByDesc(ShopProduct::getCreateTime);
@@ -279,6 +281,8 @@ public class ShopProductService {
             product.setSupplierIds(ids);
             product.setSupplierNames(String.join("、", names));
             product.setSaleCount(saleCountMap.getOrDefault(product.getProductId(), 0));
+            ShopStock stock = stockService.getStock(product.getProductId());
+            product.setStockQuantity(stock == null || stock.getQuantity() == null ? 0 : stock.getQuantity());
         }
     }
 

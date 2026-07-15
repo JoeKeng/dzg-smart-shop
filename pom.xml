@@ -380,7 +380,6 @@
     <modules>
         <module>dzg-auth</module>
         <module>dzg-gateway</module>
-        <module>dzg-gateway-mvc</module>
         <module>dzg-visual</module>
         <module>dzg-modules</module>
         <module>dzg-api</module>

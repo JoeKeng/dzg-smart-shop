@@ -60,6 +60,9 @@ public class ShopProduct extends TenantEntity {
     private Integer saleCount;
 
     @TableField(exist = false)
+    private Integer stockQuantity;
+
+    @TableField(exist = false)
     private String keyword;
 
     @TableField(exist = false)
