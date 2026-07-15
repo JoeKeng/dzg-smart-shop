@@ -11,12 +11,9 @@
     <section class="purchase-panel">
       <el-form label-width="96px">
         <el-form-item label="供应商">
-          <div class="field-with-action">
-            <el-select v-model="form.supplierId" clearable filterable placeholder="选择供应商" @change="handleSupplierChange">
-              <el-option v-for="item in suppliers" :key="item.supplierId" :label="item.supplierName" :value="item.supplierId" />
-            </el-select>
-            <el-button class="action-button" icon="Goods" @click="showAllProducts">显示全部商品</el-button>
-          </div>
+          <el-select v-model="form.supplierId" clearable filterable placeholder="选择供应商后只显示绑定商品" @change="handleSupplierChange">
+            <el-option v-for="item in suppliers" :key="item.supplierId" :label="item.supplierName" :value="item.supplierId" />
+          </el-select>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="form.remark" placeholder="例如：早上批发市场进货" />
@@ -127,12 +124,6 @@ const handleSupplierChange = async () => {
   if (form.supplierId && products.value.length === 0) {
     proxy?.$modal.msgWarning('这个供应商还没有绑定商品，商品档案里可先绑定常用供应商');
   }
-};
-
-const showAllProducts = async () => {
-  form.supplierId = undefined;
-  await loadProducts();
-  proxy?.$modal.msgSuccess('已显示全部商品');
 };
 
 const loadOptions = async () => {

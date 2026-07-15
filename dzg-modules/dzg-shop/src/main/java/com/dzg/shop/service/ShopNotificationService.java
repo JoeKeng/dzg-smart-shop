@@ -74,7 +74,9 @@ public class ShopNotificationService {
         notificationMapper.updateById(notice);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void readAll() {
+        listNotifications();
         notificationMapper.update(null, Wrappers.<ShopNotification>lambdaUpdate()
             .set(ShopNotification::getStatus, "1")
             .eq(ShopNotification::getStatus, "0"));

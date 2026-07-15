@@ -78,10 +78,19 @@
               <el-button class="small-action" icon="Plus" @click="openCategory()">新增分类</el-button>
             </div>
           </el-form-item>
-          <el-form-item label="常用供应商">
-            <el-select v-model="form.supplierIds" multiple filterable clearable placeholder="选择一个或多个供应商">
+          <el-form-item label="常用供应商" prop="supplierIds">
+            <el-select
+              v-model="form.supplierIds"
+              multiple
+              filterable
+              clearable
+              :multiple-limit="3"
+              :disabled="suppliers.length === 0"
+              placeholder="至少选 1 个，最多 3 个"
+            >
               <el-option v-for="item in suppliers" :key="item.supplierId" :label="item.supplierName" :value="item.supplierId" />
             </el-select>
+            <p v-if="suppliers.length === 0" class="field-tip">请先在供应商管理里新增供应商。</p>
           </el-form-item>
           <el-form-item label="条码">
             <el-input v-model="form.barcode" name="barcode" autocomplete="off" placeholder="可扫码或手动输入" />
@@ -163,6 +172,22 @@ const categoryForm = reactive<ShopCategory>({});
 const rules = {
   productName: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
   categoryId: [{ required: true, message: '请选择商品分类', trigger: 'change' }],
+  supplierIds: [
+    {
+      validator: (_rule: unknown, value: Array<string | number> | undefined, callback: (error?: Error) => void) => {
+        if (!value || value.length === 0) {
+          callback(new Error('请选择至少一个常用供应商'));
+          return;
+        }
+        if (value.length > 3) {
+          callback(new Error('常用供应商最多选择 3 个'));
+          return;
+        }
+        callback();
+      },
+      trigger: 'change'
+    }
+  ],
   salePrice: [{ required: true, message: '请输入售价', trigger: 'blur' }]
 };
 const categoryRules = {
@@ -354,6 +379,12 @@ onMounted(async () => {
 
 .field-with-action {
   width: 100%;
+}
+
+.field-tip {
+  margin: 6px 0 0;
+  color: var(--dzg-shop-clay);
+  font-size: 13px;
 }
 
 .number-grid {

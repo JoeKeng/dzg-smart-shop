@@ -6,7 +6,7 @@
         <p>先处理未读消息，已读提醒会收进归档区，后续仍可改回未读。</p>
       </div>
       <div class="title-actions">
-        <el-button class="action-button" icon="Refresh" :loading="loading" @click="loadNotices">刷新</el-button>
+        <el-button class="action-button" icon="Refresh" :loading="loading" @click="loadNotices(false)">刷新</el-button>
         <el-button class="primary-action" type="primary" icon="Finished" :disabled="unreadNotices.length === 0" @click="markAllRead">全部已读</el-button>
       </div>
     </div>
@@ -84,12 +84,15 @@ const loading = ref(false);
 const showArchived = ref(false);
 const notices = ref<ShopNotification[]>([]);
 const notifiedKeys = new Set<string>();
+let refreshTimer: ReturnType<typeof window.setInterval> | undefined;
 
 const unreadNotices = computed(() => notices.value.filter((item) => item.status === '0'));
 const readNotices = computed(() => notices.value.filter((item) => item.status !== '0'));
 
-const loadNotices = async () => {
-  loading.value = true;
+const loadNotices = async (silent = false) => {
+  if (!silent) {
+    loading.value = true;
+  }
   try {
     const res = await listNotification();
     notices.value = optionList<ShopNotification>(res);
@@ -99,7 +102,9 @@ const loadNotices = async () => {
     syncNoticeStore();
     notifyUrgentMessages();
   } finally {
-    loading.value = false;
+    if (!silent) {
+      loading.value = false;
+    }
   }
 };
 
@@ -158,11 +163,8 @@ const setReadStatus = async (item: ShopNotification, status: '0' | '1') => {
 
 const markAllRead = async () => {
   await readAllNotification();
-  notices.value.forEach((item) => {
-    item.status = '1';
-  });
   showArchived.value = true;
-  syncNoticeStore();
+  await loadNotices(true);
 };
 
 const notifyUrgentMessages = () => {
@@ -183,5 +185,22 @@ const notifyUrgentMessages = () => {
     });
 };
 
-onMounted(loadNotices);
+const refreshWhenVisible = () => {
+  if (!document.hidden) {
+    loadNotices(true);
+  }
+};
+
+onMounted(() => {
+  loadNotices(false);
+  refreshTimer = window.setInterval(() => loadNotices(true), 30000);
+  document.addEventListener('visibilitychange', refreshWhenVisible);
+});
+
+onBeforeUnmount(() => {
+  if (refreshTimer) {
+    window.clearInterval(refreshTimer);
+  }
+  document.removeEventListener('visibilitychange', refreshWhenVisible);
+});
 </script>

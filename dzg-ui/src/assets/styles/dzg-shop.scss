@@ -355,8 +355,17 @@ body {
   flex: 0 0 auto;
 }
 
-.shop-page .el-button--primary,
-.cashier-page .el-button--primary {
+.shop-page .el-button > span,
+.cashier-page .el-button > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.shop-page .el-button--primary:not(.is-link),
+.cashier-page .el-button--primary:not(.is-link) {
   border-color: var(--dzg-shop-primary);
   background: var(--dzg-shop-primary);
 }
@@ -373,6 +382,18 @@ body {
   min-width: 0;
   margin-left: 7px;
   overflow: visible;
+}
+
+.shop-page .el-tag,
+.cashier-page .el-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  line-height: 1;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .toolbar,
@@ -532,10 +553,34 @@ body {
 
 .shop-page .el-table .el-button.is-link,
 .cashier-page .el-table .el-button.is-link {
-  min-height: 32px;
-  padding: 0 6px;
-  box-shadow: none;
+  display: inline-flex;
+  width: auto;
+  min-width: 0;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 4px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  line-height: 1;
   white-space: nowrap;
+}
+
+.shop-page .el-table .el-button.is-link.el-button--primary,
+.cashier-page .el-table .el-button.is-link.el-button--primary {
+  color: var(--dzg-shop-primary);
+}
+
+.shop-page .el-table .el-button.is-link.el-button--danger,
+.cashier-page .el-table .el-button.is-link.el-button--danger {
+  color: #d95c5c;
+}
+
+.shop-page .el-table .el-button.is-link .el-icon,
+.cashier-page .el-table .el-button.is-link .el-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
 }
 
 .shop-page .el-dialog,

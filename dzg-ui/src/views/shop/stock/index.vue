@@ -1,8 +1,11 @@
 <template>
   <div class="shop-page">
     <div class="shop-title">
-      <h2>库存管理</h2>
-      <el-button class="primary-action" type="primary" icon="Plus" @click="dialogVisible = true">入库/出库</el-button>
+      <div>
+        <h2>库存管理</h2>
+        <p>采购入库会自动增加库存；这里只处理盘点、损耗、退货等手工调整。</p>
+      </div>
+      <el-button class="primary-action" type="primary" icon="Plus" @click="dialogVisible = true">库存调整</el-button>
     </div>
 
     <el-table v-loading="loading" border :data="stocks" row-key="stockId">
@@ -39,7 +42,7 @@
             <el-option v-for="item in products" :key="item.productId" :label="item.productName" :value="item.productId" />
           </el-select>
         </el-form-item>
-        <el-form-item label="操作">
+        <el-form-item label="调整方式">
           <el-segmented v-model="form.changeType" :options="typeOptions" />
         </el-form-item>
         <el-form-item label="数量">
@@ -72,8 +75,8 @@ const dialogVisible = ref(false);
 const query = reactive({ pageNum: 1, pageSize: 10 });
 const form = reactive({ productId: undefined as string | number | undefined, changeType: 'in', quantity: 1, remark: '' });
 const typeOptions = [
-  { label: '入库', value: 'in' },
-  { label: '出库', value: 'out' }
+  { label: '增加库存', value: 'in' },
+  { label: '减少库存', value: 'out' }
 ];
 
 const loadStocks = async () => {
@@ -100,7 +103,7 @@ const submitAdjust = async () => {
     return;
   }
   await adjustStock(form);
-  proxy?.$modal.msgSuccess(form.changeType === 'in' ? '库存已入库' : '库存已出库');
+  proxy?.$modal.msgSuccess(form.changeType === 'in' ? '库存已增加' : '库存已减少');
   dialogVisible.value = false;
   await loadStocks();
   await loadLogs();
