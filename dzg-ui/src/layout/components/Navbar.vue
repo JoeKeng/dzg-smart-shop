@@ -51,6 +51,15 @@
           <screenfull id="screenfull" class="right-menu-item hover-effect" />
         </el-tooltip>
 
+        <el-tooltip :content="isDark ? '切换浅色' : '切换深色'" effect="dark" placement="bottom">
+          <div class="right-menu-item hover-effect theme-toggle" role="button" :aria-label="isDark ? '切换浅色' : '切换深色'" @click="toggleTheme">
+            <el-icon>
+              <Sunny v-if="isDark" />
+              <Moon v-else />
+            </el-icon>
+          </div>
+        </el-tooltip>
+
         <el-tooltip :content="proxy.$t('navbar.language')" effect="dark" placement="bottom">
           <lang-select id="lang-select" class="right-menu-item hover-effect" />
         </el-tooltip>
@@ -99,6 +108,7 @@ import { ElMessageBoxOptions } from 'element-plus/es/components/message-box/src/
 import { NavTypeEnum } from '@/enums/NavTypeEnum';
 import Logo from "@/layout/components/Sidebar/Logo.vue";
 import TopBar from './TopBar'
+import { useDark, useToggle } from '@vueuse/core';
 
 const appStore = useAppStore();
 const userStore = useUserStore();
@@ -111,6 +121,15 @@ const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 const userId = ref(userStore.userId);
 const navType = computed(() => settingsStore.navType);
 const showLogo = computed(() => settingsStore.sidebarLogo);
+const isDark = useDark({
+  storageKey: 'useDarkKey',
+  valueDark: 'dark',
+  valueLight: 'light'
+});
+const toggleDark = useToggle(isDark);
+const toggleTheme = () => {
+  toggleDark();
+};
 
 const companyName = ref(undefined);
 const tenantList = ref<TenantVO[]>([]);

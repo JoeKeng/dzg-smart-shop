@@ -156,10 +156,10 @@ onMounted(() => {
 }
 .product-button {
   min-height: 76px;
-  border: 1px solid #c8d1dc;
+  border: 1px solid var(--dzg-shop-border);
   border-radius: 8px;
-  background: #f9fafb;
-  color: #172033;
+  background: color-mix(in srgb, var(--dzg-shop-surface) 88%, var(--dzg-shop-bg));
+  color: var(--dzg-shop-text);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -172,13 +172,13 @@ onMounted(() => {
 }
 .product-button:hover,
 .product-button:focus-visible {
-  border-color: #087f73;
-  box-shadow: 0 4px 10px rgba(8, 127, 115, 0.12);
+  border-color: var(--dzg-shop-primary);
+  box-shadow: 0 0 0 3px var(--dzg-shop-focus), var(--dzg-shop-shadow);
   outline: none;
   transform: translateY(-1px);
 }
 .product-button strong {
-  color: #087f73;
+  color: var(--dzg-shop-primary);
   font-size: 18px;
 }
 .pay-type,

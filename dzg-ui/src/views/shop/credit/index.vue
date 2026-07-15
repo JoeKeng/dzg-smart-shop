@@ -106,7 +106,7 @@ onMounted(loadCredits);
 
 <style scoped>
 .danger {
-  color: #b42318;
+  color: var(--dzg-shop-clay);
   font-size: 18px;
 }
 </style>

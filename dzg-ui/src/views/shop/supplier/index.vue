@@ -114,7 +114,7 @@ onMounted(loadSuppliers);
 
 <style scoped>
 .count-text {
-  color: #087f73;
+  color: var(--dzg-shop-primary);
   font-size: 18px;
   font-variant-numeric: tabular-nums;
 }

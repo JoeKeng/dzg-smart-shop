@@ -116,11 +116,11 @@ onMounted(() => {
 <style scoped>
 .section-title {
   margin: 20px 0 12px;
-  color: #172033;
+  color: var(--dzg-shop-text);
   font-size: 18px;
 }
 .danger {
-  color: #b42318;
+  color: var(--dzg-shop-clay);
   font-size: 18px;
 }
 </style>

@@ -328,9 +328,9 @@ onMounted(async () => {
   height: 56px;
   align-items: center;
   justify-content: center;
-  border: 1px dashed #9ca3af;
+  border: 1px dashed var(--dzg-shop-border-strong);
   border-radius: 8px;
-  color: #4b5563;
+  color: var(--dzg-shop-muted);
   font-size: 15px;
 }
 
@@ -341,14 +341,14 @@ onMounted(async () => {
 
 .form-section {
   padding: 14px 14px 4px;
-  border: 1px solid #d9e0e7;
+  border: 1px solid var(--dzg-shop-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--dzg-shop-surface);
 }
 
 .form-section h3 {
   margin: 0 0 12px;
-  color: #172033;
+  color: var(--dzg-shop-text);
   font-size: 18px;
 }
 

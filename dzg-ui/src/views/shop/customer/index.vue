@@ -116,6 +116,6 @@ onMounted(loadCustomers);
 
 <style scoped>
 .danger {
-  color: #b42318;
+  color: var(--dzg-shop-clay);
 }
 </style>
