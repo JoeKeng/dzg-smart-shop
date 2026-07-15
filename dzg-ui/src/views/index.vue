@@ -39,6 +39,10 @@
           <p>实收与赊账占比</p>
         </div>
         <div ref="incomeChartRef" class="chart-canvas" role="img" aria-label="今日收款构成图表"></div>
+        <div class="income-summary" aria-label="今日收款明细">
+          <span>实收 ￥{{ money(data.todaySales) }}</span>
+          <span>赊账 ￥{{ money(data.todayCredit) }}</span>
+        </div>
       </article>
       <article class="chart-panel">
         <div class="chart-panel__head">
@@ -137,11 +141,11 @@ const renderCharts = () => {
 
   const todaySales = Number(data.value.todaySales || 0);
   const todayCredit = Number(data.value.todayCredit || 0);
-  const paidAmount = Math.max(todaySales - todayCredit, 0);
-  const hasIncome = paidAmount + todayCredit > 0;
+  const incomeTotal = todaySales + todayCredit;
+  const hasIncome = incomeTotal > 0;
   const incomeData = hasIncome
     ? [
-        { name: '已收款', value: paidAmount },
+        { name: '已收款', value: todaySales },
         { name: '赊账', value: todayCredit }
       ]
     : [{ name: '暂无收款', value: 1 }];
@@ -152,6 +156,7 @@ const renderCharts = () => {
       color: hasIncome ? [primaryColor, goldColor] : [borderColor],
       tooltip: {
         trigger: 'item',
+        confine: true,
         formatter: (params: any) => (hasIncome ? `${params.name}<br/>￥${money(params.value)} (${params.percent}%)` : '暂无收款数据')
       },
       legend: {
@@ -159,24 +164,38 @@ const renderCharts = () => {
         icon: 'roundRect',
         textStyle: { color: mutedColor }
       },
-      graphic: {
-        type: 'text',
-        left: 'center',
-        top: '38%',
-        style: {
-          text: hasIncome ? `￥${money(todaySales)}` : '暂无数据',
-          fill: textColor,
-          fontSize: hasIncome ? 20 : 16,
-          fontWeight: 700,
-          textAlign: 'center'
+      graphic: [
+        {
+          type: 'text',
+          left: 'center',
+          top: '38%',
+          style: {
+            text: hasIncome ? '合计' : '暂无',
+            fill: mutedColor,
+            fontSize: 12,
+            fontWeight: 700,
+            textAlign: 'center'
+          }
+        },
+        {
+          type: 'text',
+          left: 'center',
+          top: '47%',
+          style: {
+            text: hasIncome ? `￥${money(incomeTotal)}` : '暂无数据',
+            fill: textColor,
+            fontSize: hasIncome ? 18 : 15,
+            fontWeight: 800,
+            textAlign: 'center'
+          }
         }
-      },
+      ],
       series: [
         {
           name: '收款构成',
           type: 'pie',
-          radius: ['58%', '78%'],
-          center: ['50%', '42%'],
+          radius: [50, 74],
+          center: ['50%', '49%'],
           avoidLabelOverlap: true,
           label: {
             show: false
@@ -470,7 +489,29 @@ onBeforeUnmount(() => {
 
 .chart-canvas {
   width: 100%;
-  height: 270px;
+  height: 220px;
+}
+
+.income-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: -8px;
+}
+
+.income-summary span {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--dzg-shop-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--dzg-shop-bg-soft) 76%, transparent);
+  color: var(--dzg-shop-text);
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status-section {
@@ -533,6 +574,10 @@ onBeforeUnmount(() => {
 
   .chart-panel__head p {
     white-space: normal;
+  }
+
+  .income-summary {
+    grid-template-columns: 1fr;
   }
 }
 </style>

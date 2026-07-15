@@ -5,7 +5,7 @@
         <h2>经营报表</h2>
         <p>用最少数字看清店里赚没赚、欠款多不多。</p>
       </div>
-      <el-button class="primary-action" icon="Refresh" :loading="loading" @click="loadReport">刷新</el-button>
+      <el-button class="primary-action" icon="Refresh" :loading="loading || aiLoading" @click="refreshReport">刷新</el-button>
     </div>
 
     <section class="metric-grid">
@@ -47,9 +47,12 @@
       <div class="ai-panel__head">
         <div>
           <h3>经营分析助手</h3>
-          <p>{{ aiAnalysis.summary || '刷新后会根据销售、库存和赊账生成经营建议。' }}</p>
+          <p>{{ aiAnalysis.summary || (aiLoading ? '正在根据销售、库存和赊账自动生成经营建议。' : '打开经营报表后会自动生成经营建议。') }}</p>
         </div>
-        <el-button class="action-button" icon="Refresh" :loading="aiLoading" @click="loadAiAnalysis">重新分析</el-button>
+        <div class="ai-panel__actions">
+          <el-tag :type="sourceTagType" size="large">{{ sourceText }}</el-tag>
+          <el-button class="action-button" icon="Refresh" :loading="aiLoading" @click="loadAiAnalysis">重新分析</el-button>
+        </div>
       </div>
       <div class="ai-grid">
         <article v-for="item in aiAnalysis.insights" :key="`${item.type}-${item.title}`" class="ai-card">
@@ -94,7 +97,6 @@ const loadReport = async () => {
   } finally {
     loading.value = false;
   }
-  await loadAiAnalysis();
 };
 
 const loadAiAnalysis = async () => {
@@ -113,6 +115,10 @@ const go = (path?: string) => {
   }
 };
 
+const refreshReport = async () => {
+  await Promise.all([loadReport(), loadAiAnalysis()]);
+};
+
 const insightTagType = (level?: string) => {
   if (level === 'danger') return 'danger';
   if (level === 'warning') return 'warning';
@@ -126,6 +132,17 @@ const insightLevelText = (level?: string) => {
   if (level === 'success') return '正常';
   return '建议';
 };
+const sourceTagType = computed(() => (aiAnalysis.value.generatedByAi ? 'success' : 'info'));
+const sourceText = computed(() => (aiAnalysis.value.generatedByAi ? 'DeepSeek分析' : '本地分析'));
 
-onMounted(loadReport);
+onMounted(refreshReport);
 </script>
+
+<style scoped>
+.ai-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+</style>
